@@ -3,6 +3,7 @@ import random
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.features.early_smoke.models import SystemState
+from app.features.early_smoke.broadcaster import broadcaster
 
 
 class CircuitBreaker:
@@ -66,6 +67,11 @@ class CircuitBreaker:
             # Transition to HALF_OPEN
             state_data["state"] = "HALF_OPEN"
             self._save_state(db, state_data)
+            broadcaster.broadcast(
+                event_type="circuit_breaker",
+                message=f"Circuit Breaker '{self.name}' cooldown elapsed. Transitioned from OPEN to HALF_OPEN.",
+                source=self.name
+            )
             return True
 
         return False
@@ -75,10 +81,17 @@ class CircuitBreaker:
         Resets failure counters and closes the circuit on a successful scrape run.
         """
         state_data = self._get_state(db)
+        old_state = state_data["state"]
         state_data["state"] = "CLOSED"
         state_data["failures"] = 0
         state_data["retry_at"] = None
         self._save_state(db, state_data)
+        if old_state != "CLOSED":
+            broadcaster.broadcast(
+                event_type="circuit_breaker",
+                message=f"Circuit Breaker '{self.name}' state recovered: {old_state} -> CLOSED.",
+                source=self.name
+            )
 
     def record_failure(self, db: Session) -> None:
         """
@@ -87,6 +100,7 @@ class CircuitBreaker:
         state_data = self._get_state(db)
         failures = state_data["failures"] + 1
         state_data["failures"] = failures
+        old_state = state_data["state"]
 
         if failures >= self.threshold:
             state_data["state"] = "OPEN"
@@ -103,6 +117,12 @@ class CircuitBreaker:
             state_data["retry_at"] = retry_time.isoformat()
 
         self._save_state(db, state_data)
+        if state_data["state"] == "OPEN" and old_state != "OPEN":
+            broadcaster.broadcast(
+                event_type="circuit_breaker",
+                message=f"Circuit Breaker '{self.name}' tripped to OPEN due to consecutive failures ({failures}). Re-evaluation cooldown active.",
+                source=self.name
+            )
 
     def get_status(self, db: Session) -> dict:
         """

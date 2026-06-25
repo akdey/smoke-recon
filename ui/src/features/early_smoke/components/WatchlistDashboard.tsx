@@ -5,6 +5,7 @@ import { useSystemStatus } from '../hooks/useSystemStatus';
 import SystemStatusBanner from './SystemStatusBanner';
 import BreakoutCard from './BreakoutCard';
 import MentionChart from './MentionChart';
+import ActivityConsole from './ActivityConsole';
 
 export default function WatchlistDashboard() {
   const [days, setDays] = useState<number>(7);
@@ -175,6 +176,9 @@ export default function WatchlistDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Real-time Activity Logs Stream */}
+      <ActivityConsole />
     </div>
   );
 }

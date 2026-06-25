@@ -51,5 +51,16 @@ def shutdown_event():
     logger.info("Application shutdown sequence completed.")
 
 
+from app.features.early_smoke.router import get_health
+from app.db import get_db
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
 # Register routes
 app.include_router(early_smoke_router)
+
+
+# Register alias health endpoint at root level
+@app.get("/api/health")
+def api_health_alias(db: Session = Depends(get_db)):
+    return get_health(db)

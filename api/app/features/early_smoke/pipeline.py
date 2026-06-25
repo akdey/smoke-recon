@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from app.config import settings
 from app.features.early_smoke.models import Signal, Mention
 from app.features.early_smoke.matcher import ticker_matcher
+from app.features.early_smoke.broadcaster import broadcaster
 
 logger = logging.getLogger("pipeline")
 
@@ -84,6 +85,23 @@ def ingest_social_post(db: Session, post_data: Dict[str, Any]) -> bool:
 
     try:
         db.commit()
+        # Broadcast the ingestion activity
+        if mentions:
+            for m in mentions:
+                broadcaster.broadcast(
+                    event_type="mention",
+                    message=f"Matched '{m['ticker']}' in {platform} comment (Confidence: {int(m['confidence']*100)}%).",
+                    ticker=m["ticker"],
+                    source=platform,
+                    details={"body": content_body, "match_type": m["match_type"]}
+                )
+        else:
+            broadcaster.broadcast(
+                event_type="scraper",
+                message=f"Processed {platform} comment (no stock ticker match).",
+                source=platform,
+                details={"body": content_body}
+            )
         return True
     except Exception as e:
         db.rollback()

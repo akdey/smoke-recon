@@ -6,6 +6,7 @@ from app.features.early_smoke.models import MediaBaseline, MediaMention
 from app.features.early_smoke.matcher import ticker_matcher
 from app.features.early_smoke.rss_worker import fetch_google_news_baseline
 from app.features.early_smoke.ddg_worker import fetch_ddg_news_baseline
+from app.features.early_smoke.broadcaster import broadcaster
 
 logger = logging.getLogger("media_pipeline")
 
@@ -75,11 +76,26 @@ def run_media_baseline_ingestion(db: Session) -> None:
                 timestamp=baseline.timestamp,
             )
             db.add(media_mention)
+            # Broadcast the media mention
+            broadcaster.broadcast(
+                event_type="media",
+                message=f"Matched baseline '{m['ticker']}' in media headline (Source: {art['source']}).",
+                ticker=m["ticker"],
+                source=art["source"],
+                details={"headline": art["headline"]}
+            )
 
         success_count += 1
 
     try:
         db.commit()
+        # Broadcast completed crawl status
+        broadcaster.broadcast(
+            event_type="system",
+            message=f"Mainstream media crawl completed. Ingested {success_count} new baseline articles.",
+            source="media_pipeline",
+            details={"total_processed": len(articles)}
+        )
         logger.info(
             f"Media baseline ingestion completed. Ingested {success_count}/{len(articles)} new articles."
         )

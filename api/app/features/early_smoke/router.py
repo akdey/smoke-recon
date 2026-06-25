@@ -1,5 +1,8 @@
 import os
-from fastapi import APIRouter, Depends, Query, HTTPException
+import asyncio
+import json
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.db import get_db
@@ -7,8 +10,26 @@ from app.config import settings
 from app.features.early_smoke import schemas, breakout
 from app.features.early_smoke.circuit_breaker import twitter_circuit_breaker
 from app.features.early_smoke.scheduler import scheduler
+from app.features.early_smoke.broadcaster import broadcaster
 
 router = APIRouter(prefix="/api/features/early-smoke", tags=["Early Smoke"])
+
+
+@router.get("/stream")
+async def stream_activity(request: Request):
+    """
+    Server-Sent Events (SSE) stream endpoint to push live ingestion and analytics activities.
+    """
+    async def event_generator():
+        try:
+            async for event in broadcaster.subscribe():
+                if await request.is_disconnected():
+                    break
+                yield f"data: {json.dumps(event)}\n\n"
+        except asyncio.CancelledError:
+            pass
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @router.get("/watchlist", response_model=schemas.WatchlistResponse)

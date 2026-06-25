@@ -17,6 +17,7 @@ export default function WatchlistDashboard() {
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'watchlist' | 'analytics' | 'activity'>('watchlist');
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState<boolean>(false);
 
   // Load API hooks
   const { data, loading, error } = useWatchlist(days, minMentions);
@@ -229,35 +230,54 @@ export default function WatchlistDashboard() {
         <section className="col-span-4 flex flex-col gap-4 overflow-hidden h-full">
           {/* Params header */}
           <div className="bg-[#0b0f19]/60 backdrop-blur-md border border-[#1f2937]/50 rounded-xl p-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <SlidersHorizontal className="h-3.5 w-3.5 text-blue-400" /> Filter Criteria
-            </h3>
+            <button 
+              onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest active:scale-[0.99] transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-blue-400" />
+                <span>Filter Criteria</span>
+              </div>
+              <span className="text-gray-500 font-mono text-[10px] hover:text-slate-300">
+                {isFiltersExpanded ? '[ Hide ]' : '[ Expand ]'}
+              </span>
+            </button>
             
-            <div className="space-y-4">
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Window Duration</span>
-                  <span className="text-blue-400 font-mono font-bold">{days} days</span>
-                </div>
-                <input 
-                  type="range" min="1" max="30" value={days} 
-                  onChange={(e) => setDays(Number(e.target.value))}
-                  className="h-1 w-full bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
-              </div>
+            <AnimatePresence>
+              {isFiltersExpanded && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                  animate={{ height: 'auto', opacity: 1, marginTop: 16 }}
+                  exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-4 overflow-hidden"
+                >
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-300 font-medium">Window Duration</span>
+                      <span className="text-blue-400 font-mono font-bold">{days} days</span>
+                    </div>
+                    <input 
+                      type="range" min="1" max="30" value={days} 
+                      onChange={(e) => setDays(Number(e.target.value))}
+                      className="h-1 w-full bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
 
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Minimum Mentions</span>
-                  <span className="text-blue-400 font-mono font-bold">{minMentions}</span>
-                </div>
-                <input 
-                  type="range" min="1" max="10" value={minMentions} 
-                  onChange={(e) => setMinMentions(Number(e.target.value))}
-                  className="h-1 w-full bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
-              </div>
-            </div>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-300 font-medium">Minimum Mentions</span>
+                      <span className="text-blue-400 font-mono font-bold">{minMentions}</span>
+                    </div>
+                    <input 
+                      type="range" min="1" max="10" value={minMentions} 
+                      onChange={(e) => setMinMentions(Number(e.target.value))}
+                      className="h-1 w-full bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* List */}

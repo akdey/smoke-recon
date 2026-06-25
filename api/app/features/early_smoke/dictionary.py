@@ -21,6 +21,25 @@ SECTOR_SUFFIXES = [
     " enterprise", " enterprises"
 ]
 
+# Generic words that should not be mapped to tickers if they are the sole word after deep cleaning.
+GENERIC_WORDS = {
+    "indian", "standard", "focus", "yes", "good", "state", "union", "national", 
+    "central", "system", "systems", "power", "steel", "capital", "infra", "energy", 
+    "finance", "bank", "securities", "services", "service", "general", "india", 
+    "global", "international", "associated", "association", "current", "future",
+    "growth", "value", "special", "dynamic", "industries", "industry"
+}
+
+# Acronyms that are common English/Hinglish words and must be ignored to prevent false matches.
+ACRONYM_BLACKLIST = {
+    "its", "nse", "is", "in", "at", "by", "to", "for", "or", "am", "be", "do", "he", "she", 
+    "we", "me", "us", "my", "you", "our", "him", "her", "the", "and", "was", "are", "out", 
+    "how", "who", "why", "get", "set", "run", "see", "saw", "can", "say", "new", "old", 
+    "bad", "map", "has", "key", "yes", "good", "pe", "se", "ki", "ko", "ka", "ke", "ne", 
+    "bhi", "hi", "ya", "aur", "ab", "tha", "thi", "the", "mein", "par", "kya", "sab", "toh", 
+    "ho", "main", "hu", "hum", "kar", "roz", "pe"
+}
+
 def clean_company_name(name: str) -> str:
     """
     Cleans official company names by removing corporate suffixes.
@@ -136,12 +155,12 @@ class CorporateDictionary:
                 
                 if colloquial_name:
                     self._mapping[colloquial_name] = symbol
-                if deep_colloquial:
+                if deep_colloquial and deep_colloquial not in GENERIC_WORDS:
                     self._mapping[deep_colloquial] = symbol
                 
                 # Acronym mapping
                 acronym = generate_acronym(colloquial_name)
-                if acronym:
+                if acronym and acronym not in ACRONYM_BLACKLIST:
                     self._mapping[acronym] = symbol
                 
                 self._mapping[symbol.lower()] = symbol

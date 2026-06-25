@@ -1,5 +1,7 @@
 import hashlib
 import logging
+import re
+from bs4 import BeautifulSoup
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -9,6 +11,26 @@ from app.features.early_smoke.matcher import ticker_matcher
 from app.features.early_smoke.broadcaster import broadcaster
 
 logger = logging.getLogger("pipeline")
+
+
+def clean_html(text: str) -> str:
+    """
+    Cleans raw HTML comments and tags from comments to ensure clean database storage
+    and prevents false matches on markup strings.
+    """
+    if not text:
+        return ""
+    # Strip HTML comments first
+    text_no_comments = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    if "<" in text_no_comments and ">" in text_no_comments:
+        try:
+            soup = BeautifulSoup(text_no_comments, "html.parser")
+            return soup.get_text().strip()
+        except Exception:
+            pass
+    # Regex fallback
+    text_no_tags = re.sub(r"<[^>]+>", "", text_no_comments)
+    return text_no_tags.strip()
 
 
 def compute_unique_hash(platform: str, thread_id: str, content_body: str) -> str:
@@ -28,7 +50,8 @@ def ingest_social_post(db: Session, post_data: Dict[str, Any]) -> bool:
     """
     platform = post_data.get("platform", "")
     thread_id = post_data.get("thread_id", "")
-    content_body = post_data.get("content_body", "")
+    content_body_raw = post_data.get("content_body", "")
+    content_body = clean_html(content_body_raw)
     engagement_depth = post_data.get("engagement_depth", "nested_comment")
 
     if not platform or not content_body:

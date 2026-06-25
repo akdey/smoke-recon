@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.memory import MemoryJobStore
 from app.config import settings
@@ -35,16 +36,18 @@ def start_scheduler() -> None:
     Registers ingestion jobs and starts the background AsyncIO task loop scheduler.
     """
     interval = settings.scraping_interval_minutes
+    now = datetime.utcnow()
 
     logger.info("Registering background crawler jobs...")
 
-    # Ingestion Jobs
+    # Ingestion Jobs: run immediately on start, then repeat on interval
     scheduler.add_job(
         run_task_with_db,
         "interval",
         minutes=interval,
         args=[run_reddit_ingestion],
         id="reddit_ingestion",
+        next_run_time=now,
         replace_existing=True,
     )
     scheduler.add_job(
@@ -53,6 +56,7 @@ def start_scheduler() -> None:
         minutes=interval,
         args=[run_message_boards_ingestion],
         id="message_boards_ingestion",
+        next_run_time=now,
         replace_existing=True,
     )
     scheduler.add_job(
@@ -61,6 +65,7 @@ def start_scheduler() -> None:
         minutes=interval,
         args=[run_twitter_ingestion],
         id="twitter_ingestion",
+        next_run_time=now,
         replace_existing=True,
     )
     scheduler.add_job(
@@ -69,6 +74,7 @@ def start_scheduler() -> None:
         minutes=interval,
         args=[run_media_baseline_ingestion],
         id="media_baseline_ingestion",
+        next_run_time=now,
         replace_existing=True,
     )
 

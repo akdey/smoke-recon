@@ -11,8 +11,8 @@ export function useWatchlist(days: number, minMentions: number) {
     setLoading(true);
     setError(null);
 
-    // Fetch from FastAPI Watchlist Endpoint
-    fetch(`/api/features/early-smoke/watchlist?days=${days}&min_mentions=${minMentions}`)
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+    fetch(`${apiBase}/api/features/early-smoke/watchlist?days=${days}&min_mentions=${minMentions}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch watchlist details: ${res.statusText}`);

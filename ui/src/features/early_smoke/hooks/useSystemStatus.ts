@@ -6,7 +6,8 @@ export function useSystemStatus() {
 
   useEffect(() => {
     const fetchStatus = () => {
-      fetch('/api/health')
+      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+      fetch(`${apiBase}/api/health`)
         .then((res) => {
           if (res.ok) return res.json();
           throw new Error('Health check error');

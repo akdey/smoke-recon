@@ -14,6 +14,7 @@ dependencies = [
     { name = "apscheduler" },
     { name = "beautifulsoup4" },
     { name = "duckduckgo-search" },
+    { name = "en-core-web-sm" },
     { name = "fastapi" },
     { name = "feedparser" },
     { name = "numpy" },
@@ -37,6 +38,7 @@ requires-dist = [
     { name = "apscheduler", specifier = ">=3.11.2" },
     { name = "beautifulsoup4", specifier = ">=4.12.3" },
     { name = "duckduckgo-search", specifier = ">=5.3.0" },
+    { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl" },
     { name = "fastapi", specifier = ">=0.110.0" },
     { name = "feedparser", specifier = ">=6.0.11" },
     { name = "numpy", specifier = "<2.0.0" },
@@ -520,6 +522,20 @@ sdist = { url = "https://files.pythonhosted.org/packages/10/ef/07791a05751e6cc9d
 wheels = [
     { url = "https://files.pythonhosted.org/packages/db/72/c027b3b488b1010cf71670032fcf7e681d44b81829d484bb04e31a949a8d/duckduckgo_search-8.1.1-py3-none-any.whl", hash = "sha256:f48adbb06626ee05918f7e0cef3a45639e9939805c4fc179e68c48a12f1b5062", size = 18932, upload-time = "2025-07-06T15:30:58.339Z" },
 ]
+
+[[package]]
+name = "en-core-web-sm"
+version = "3.7.1"
+source = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl" }
+dependencies = [
+    { name = "spacy" },
+]
+wheels = [
+    { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl", hash = "sha256:86cc141f63942d4b2c5fcee06630fd6f904788d2f0ab005cce45aadb8fb73889" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "spacy", specifier = ">=3.7.2,<3.8.0" }]
 
 [[package]]
 name = "fastapi"

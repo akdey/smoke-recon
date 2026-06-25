@@ -13,9 +13,6 @@ COPY pyproject.toml uv.lock ./
 # Sync dependencies without installing the project code first to leverage Docker caching
 RUN uv sync --frozen --no-install-project --no-dev
 
-# Download SpaCy model inside the virtual environment
-RUN uv run python -m spacy download en_core_web_sm
-
 # Copy configuration and code
 COPY config.yaml ./
 COPY app ./app

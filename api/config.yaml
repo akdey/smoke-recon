@@ -1,0 +1,9 @@
+database_url: "sqlite:///early_smoke.db"
+retention_days: 10
+scraping_interval_minutes: 60
+
+weights:
+  reddit_thread_body: 1.0
+  reddit_nested_comment: 0.5
+  twitter_tweet_text: 0.4
+  message_board_comment: 0.8

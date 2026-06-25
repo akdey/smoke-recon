@@ -1,0 +1,40 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & build
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+*.egg-info/
+
+# Node.js dependencies & builds
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+dist-ssr/
+*.local
+
+# Database
+*.db
+*.sqlite3
+
+# Environment files
+.env
+.env*.local
+
+# macOS files
+.DS_Store
+
+# Temporary deployment workspaces
+temp_hf_space/

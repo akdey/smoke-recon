@@ -1,0 +1,41 @@
+name: Deploy API to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_URL: "huggingface.co/spaces/YOUR_HF_USERNAME/YOUR_HF_SPACE_NAME" # TODO: Replace with your Hugging Face Space path (e.g. huggingface.co/spaces/username/spacename)
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          # Clone the Hugging Face Space repository
+          git clone https://oauth2:$HF_TOKEN@$HF_SPACE_URL temp_hf_space
+          
+          # Remove previous files to avoid stale artifacts, keeping .git
+          find temp_hf_space -maxdepth 1 ! -name 'temp_hf_space' ! -name '.git' -exec rm -rf {} +
+          
+          # Copy contents of the api/ folder to the root of the space repository
+          cp -r api/* temp_hf_space/
+          
+          # Commit and push changes
+          cd temp_hf_space
+          git add -A
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to deploy."
+          else
+            git commit -m "Deploy from GitHub Actions: ${GITHUB_SHA::7}"
+            git push origin main --force
+          fi

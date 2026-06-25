@@ -56,7 +56,7 @@ export default function ActivityConsole() {
   };
 
   return (
-    <div className="bg-[#0b0f19]/70 border border-[#1f2937] rounded-xl overflow-hidden flex flex-col h-[280px]">
+    <div className="bg-[#0b0f19]/60 backdrop-blur-md border border-[#1f2937]/50 rounded-xl overflow-hidden flex flex-col h-full min-h-[300px]">
       {/* Console Header */}
       <div className="bg-[#121622] px-4 py-3 border-b border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-2">

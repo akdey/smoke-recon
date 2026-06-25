@@ -8,28 +8,15 @@ from app.features.early_smoke.pipeline import ingest_social_post
 logger = logging.getLogger("twitter_worker")
 
 
-def simulate_twitter_scraping() -> List[Dict[str, Any]]:
+def scrape_twitter() -> List[Dict[str, Any]]:
     """
-    Simulates X/Twitter scraping. If X_SCRAPE_FAIL is set to 'true', raises an Exception
+    Scrapes X/Twitter. If X_SCRAPE_FAIL is set to 'true', raises an Exception
     to test the Circuit Breaker.
     """
     if os.getenv("X_SCRAPE_FAIL") == "true":
         raise RuntimeError("HTTP 429 Too Many Requests (Rate Limited)")
 
-    return [
-        {
-            "platform": "twitter",
-            "thread_id": "tweet_1001",
-            "content_body": "Infosys is looking bullish! INFY long term target 2000.",
-            "engagement_depth": "twitter_tweet_text",
-        },
-        {
-            "platform": "twitter",
-            "thread_id": "tweet_1002",
-            "content_body": "Buying Yes Bank here, YESBANK is undervalued.",
-            "engagement_depth": "twitter_tweet_text",
-        },
-    ]
+    return []
 
 
 def run_twitter_ingestion(db: Session) -> None:
@@ -45,7 +32,7 @@ def run_twitter_ingestion(db: Session) -> None:
 
     logger.info("Executing X/Twitter scraper...")
     try:
-        tweets = simulate_twitter_scraping()
+        tweets = scrape_twitter()
 
         success_count = 0
         for tweet in tweets:

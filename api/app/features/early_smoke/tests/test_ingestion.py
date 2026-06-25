@@ -34,7 +34,8 @@ def test_ticker_extraction_and_fuzzy_matching(db_session):
 
     # Test fuzzy/colloquial mapping
     mentions_fuzzy = ticker_matcher.extract_mentions("Tata Motors is flying today!")
-    assert any(m["ticker"] == "TATAMOTORS" for m in mentions_fuzzy)
+    expected_tata = corporate_dict.get_ticker("tata motors")
+    assert any(m["ticker"] == expected_tata for m in mentions_fuzzy)
 
     mentions_abbv = ticker_matcher.extract_mentions("Check out Infy reports.")
     assert any(m["ticker"] == "INFY" for m in mentions_abbv)

@@ -3,6 +3,7 @@ from typing import List, Dict, Any, Set
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.features.early_smoke.models import Mention, MediaMention, Signal
+from app.features.early_smoke.dictionary import corporate_dict
 
 
 def compute_breakout_tickers(db: Session, window_days: int = 7) -> Set[str]:
@@ -66,22 +67,8 @@ def generate_watchlist_data(
         # Sort timestamp vectors chronologically
         timestamp_vectors.sort()
 
-        # Company name fallback matching
-        company_name = ticker
-        if ticker == "INFY":
-            company_name = "Infosys Limited"
-        elif ticker == "RELIANCE":
-            company_name = "Reliance Industries"
-        elif ticker == "TATAMOTORS":
-            company_name = "Tata Motors Limited"
-        elif ticker == "M&M":
-            company_name = "Mahindra & Mahindra"
-        elif ticker == "YESBANK":
-            company_name = "Yes Bank Limited"
-        elif ticker == "TCS":
-            company_name = "Tata Consultancy Services"
-        elif ticker == "GOODRICKE":
-            company_name = "Goodricke Group Limited"
+        # Resolve company name dynamically using corporate dictionary
+        company_name = corporate_dict.get_company_name(ticker)
 
         watchlist.append(
             {

@@ -39,14 +39,6 @@ class ActivityBroadcaster:
             {
                 "timestamp": startup_time,
                 "event_type": "system",
-                "message": "NSE/BSE Corporate Dictionary successfully cached in memory.",
-                "ticker": None,
-                "source": "dictionary",
-                "details": {"size": 29}
-            },
-            {
-                "timestamp": startup_time,
-                "event_type": "system",
                 "message": "Background cron scheduler started. Active routines: Ingestion, Purge, Analytics.",
                 "ticker": None,
                 "source": "scheduler",

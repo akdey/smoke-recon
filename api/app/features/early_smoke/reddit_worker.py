@@ -55,31 +55,9 @@ def run_reddit_ingestion(db: Session) -> None:
         )
         posts = fetch_reddit_comments_rss()
 
-    # If offline/empty feed returned, seed mock items so application has operational content
+    # Log if empty, but do not seed mock items
     if not posts:
-        logger.info(
-            "Reddit feed returned empty. Seeding simulated retail investor comments."
-        )
-        posts = [
-            {
-                "platform": "reddit",
-                "thread_id": "r101",
-                "content_body": "Buy Infosys on dips, INFY is trading at multi-year support levels.",
-                "engagement_depth": "reddit_thread_body",
-            },
-            {
-                "platform": "reddit",
-                "thread_id": "r102",
-                "content_body": "Is anyone tracking Tata Motors? TATAMOTORS SME IPO is looking strong.",
-                "engagement_depth": "reddit_nested_comment",
-            },
-            {
-                "platform": "reddit",
-                "thread_id": "r103",
-                "content_body": "Yes Bank recovery is underway. YESBANK target 30 soon.",
-                "engagement_depth": "reddit_nested_comment",
-            },
-        ]
+        logger.info("Reddit comments feed returned empty.")
 
     success_count = 0
     for post in posts:

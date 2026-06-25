@@ -21,27 +21,9 @@ def run_media_baseline_ingestion(db: Session) -> None:
     articles.extend(fetch_google_news_baseline())
     articles.extend(fetch_ddg_news_baseline())
 
-    # Offline/Seeded fallback data to guarantee mainstream baseline exists
+    # Log if empty, but do not seed mock items
     if not articles:
-        logger.info(
-            "Mainstream crawl returned empty. Seeding simulated baseline articles."
-        )
-        articles = [
-            {
-                "article_id": "m_art_01",
-                "source": "google_news",
-                "headline": "TCS reports 8% rise in profit, announces dividend of 28 rupees. Tata Consultancy Services shares steady.",
-                "url": "https://example.com/news1",
-                "timestamp": datetime.utcnow(),
-            },
-            {
-                "article_id": "m_art_02",
-                "source": "duckduckgo",
-                "headline": "Reliance Industries share price targets raised by analysts following retail sector performance.",
-                "url": "https://example.com/news2",
-                "timestamp": datetime.utcnow(),
-            },
-        ]
+        logger.info("Mainstream crawl returned empty.")
 
     success_count = 0
     for art in articles:

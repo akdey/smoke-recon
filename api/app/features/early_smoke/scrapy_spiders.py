@@ -77,37 +77,9 @@ def run_message_boards_ingestion(db: Session) -> None:
     posts.extend(scrape_chittorgarh_forum())
     posts.extend(scrape_et_times_forum())
 
-    # Fallback/Seed Data if no comments were parsed (e.g. offline execution)
+    # Log if empty, but do not seed mock items
     if not posts:
-        logger.info(
-            "Live message boards returned empty. Loading seeded IPO/Stock Board threads."
-        )
-        posts = [
-            {
-                "platform": "chittorgarh",
-                "thread_id": "c_sme_01",
-                "content_body": "SME IPO is trading at 50% GMP! Retail subscriptions are over 100x. Buying Goodricke Group.",
-                "engagement_depth": "message_board_comment",
-            },
-            {
-                "platform": "chittorgarh",
-                "thread_id": "c_sme_02",
-                "content_body": "GMP for Tata Technologies is going through the roof. Direct listing will be huge.",
-                "engagement_depth": "message_board_comment",
-            },
-            {
-                "platform": "et_times",
-                "thread_id": "et_board_01",
-                "content_body": "Reliance Q1 results are outstanding. Looking to buy RELIANCE calls.",
-                "engagement_depth": "message_board_comment",
-            },
-            {
-                "platform": "et_times",
-                "thread_id": "et_board_02",
-                "content_body": "M&M motors division reports record tractor sales. Mahindra is a solid pick.",
-                "engagement_depth": "message_board_comment",
-            },
-        ]
+        logger.info("Message boards crawl returned empty.")
 
     success_count = 0
     for post in posts:

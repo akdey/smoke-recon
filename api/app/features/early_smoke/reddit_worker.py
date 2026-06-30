@@ -49,19 +49,45 @@ def fetch_url(url: str) -> str:
 
 def fetch_reddit_comments_rss() -> List[Dict[str, Any]]:
     """
-    Fetches comments from public Reddit subreddits RSS feeds as a zero-auth fallback.
+    Fetches posts and comments from public Reddit subreddits RSS feeds as a zero-auth fallback.
+    Parses both /new/ (post titles with ticker mentions) and /comments.rss (comment bodies).
     """
     posts = []
     for sub in SUBREDDITS:
-        url = f"https://www.reddit.com/r/{sub}/comments.rss"
+        # Pass 1: New posts feed — titles often contain ticker symbols
+        new_url = f"https://www.reddit.com/r/{sub}/new/.rss"
         try:
-            feed = feedparser.parse(url)
+            feed = feedparser.parse(new_url)
             for entry in feed.entries:
+                title = entry.get("title", "")
+                summary = entry.get("summary", "")
+                # Combine title and summary for richer signal
+                body = f"{title}. {summary}".strip()
                 posts.append(
                     {
                         "platform": "reddit",
                         "thread_id": entry.get("id", ""),
-                        "content_body": entry.get("summary", entry.get("title", "")),
+                        "content_body": body,
+                        "engagement_depth": "reddit_thread_body",
+                        "url": entry.get("link", ""),
+                    }
+                )
+        except Exception as e:
+            logger.warning(f"Failed to fetch public RSS new posts for r/{sub}: {e}")
+
+        # Pass 2: Comments feed — body text with commentary
+        comments_url = f"https://www.reddit.com/r/{sub}/comments.rss"
+        try:
+            feed = feedparser.parse(comments_url)
+            for entry in feed.entries:
+                title = entry.get("title", "")
+                summary = entry.get("summary", "")
+                body = f"{title}. {summary}".strip()
+                posts.append(
+                    {
+                        "platform": "reddit",
+                        "thread_id": entry.get("id", ""),
+                        "content_body": body,
                         "engagement_depth": "reddit_nested_comment",
                         "url": entry.get("link", ""),
                     }

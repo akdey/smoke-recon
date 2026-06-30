@@ -53,12 +53,14 @@ class TickerMatcher:
 
     def extract_mentions(self, text: str) -> List[Dict[str, Any]]:
         """
-        Extracts valid listed stock tickers from raw text.
-        1. Runs SpaCy NER to extract organization/product/person entities.
-        2. Scans token candidates. A candidate is only considered if it is an explicit Cashtag ($TICKER),
-           or strictly UPPERCASE, or recognized by SpaCy as an Entity.
-        3. Runs exact dictionary lookups on these strictly filtered candidates.
-        4. Runs Levenshtein fuzzy matching only on multi-word extracted entities.
+        Extracts valid listed stock tickers from raw text using a 3-stage pipeline:
+
+        Stage 1 — Cashtag scan: Explicit $TICKER mentions (highest confidence, zero noise).
+        Stage 2 — Uppercase scan: ALL-CAPS tokens of length >= 3 that are exact ticker symbols.
+                   This is the primary signal path for Indian finance communities (Reddit ISB, Twitter).
+                   Uses the EXCLUSION_BLACKLIST to eliminate noise words.
+        Stage 3 — SpaCy entity fuzzy match: Multi-word company names from NER (e.g. "Reliance Industries").
+                   Only fires on SpaCy ORG/PRODUCT entities, requires score >= 90 Levenshtein.
         """
         if not text:
             return []
@@ -66,84 +68,59 @@ class TickerMatcher:
         mentions: List[Dict[str, Any]] = []
         seen_tickers: Set[str] = set()
 
-        # 1. Run SpaCy Named Entity Recognition
+        def _add(ticker: str, match_type: str, confidence: float) -> None:
+            if ticker not in seen_tickers:
+                seen_tickers.add(ticker)
+                mentions.append({"ticker": ticker, "match_type": match_type, "confidence": confidence})
+
+        # ── Stage 1: Cashtag scan ─────────────────────────────────────────────
+        # Matches $HDFCBANK, $INFY, etc. directly — zero noise.
+        for cashtag in re.findall(r"\$([A-Za-z][A-Za-z0-9]{1,14})", text):
+            lookup = cashtag.lower()
+            if lookup in EXCLUSION_BLACKLIST:
+                continue
+            ticker = corporate_dict.get_ticker(lookup)
+            if ticker:
+                _add(ticker, "exact", 1.0)
+
+        # ── Stage 2: Uppercase token scan ────────────────────────────────────
+        # Matches ALL-CAPS tokens that are exact ticker symbols.
+        # min len=3 eliminates abbreviations like "I", "UP", "NO".
+        # This is the dominant signal path for r/IndianStreetBets, Twitter.
+        for token in re.findall(r"\b[A-Z][A-Z0-9]{2,14}\b", text):
+            lookup = token.lower()
+            if lookup in EXCLUSION_BLACKLIST:
+                continue
+            ticker = corporate_dict.get_ticker(lookup)
+            # Only accept if the dictionary key is the ticker symbol itself
+            # (prevents colloquial name overrides from matching on generic caps words)
+            if ticker and ticker == token:
+                _add(ticker, "exact", 1.0)
+
+        # ── Stage 3: SpaCy entity fuzzy matching ──────────────────────────────
+        # Only for multi-word company names (e.g. "Reliance Industries").
+        # SpaCy en_core_web_sm is unreliable for Indian names — so we require
+        # a very high Levenshtein score (>= 90) and multi-word entities only.
         doc = self.nlp(text)
-        entities = [
-            ent.text.strip().lower() 
-            for ent in doc.ents 
-            if ent.label_ in ["ORG", "PRODUCT", "PERSON"]
+        entity_texts = [
+            ent.text.strip()
+            for ent in doc.ents
+            if ent.label_ in ["ORG", "PRODUCT"] and " " in ent.text.strip()
         ]
 
-        # 2. Tokenize candidates
-        # Keep original case for casing rules
-        cleaned_text = re.sub(r"[^\w\s&$]", " ", text)
-        words = [w.strip() for w in cleaned_text.split() if w.strip()]
-
-        candidates: List[str] = []
-        for i, word in enumerate(words):
-            candidates.append(word)
-            if i < len(words) - 1:
-                # Add bigrams (e.g. "Reliance Industries")
-                candidates.append(f"{word} {words[i + 1]}")
-
-        for candidate in candidates:
-            candidate_lower = candidate.lower()
-            if candidate_lower in EXCLUSION_BLACKLIST:
-                continue
-
-            # Strict Filter: Must be Cashtag, OR completely Uppercase, OR a SpaCy Entity
-            is_cashtag = candidate.startswith("$") and len(candidate) > 1
-            is_uppercase = candidate.isupper() and len(candidate) > 2
-            is_entity = any(candidate_lower in ent or ent in candidate_lower for ent in entities)
-
-            if not (is_cashtag or is_uppercase or is_entity):
-                continue
-                
-            # Clean cashtag prefix for lookup
-            lookup_key = candidate_lower.lstrip("$")
-
-            # Check exact O(1) dictionary match
-            ticker = corporate_dict.get_ticker(lookup_key)
-            if ticker:
-                if ticker not in seen_tickers:
-                    # Extra guardrails: skip exact matches on conversational blacklisted words
-                    if ticker == "YESBANK" and lookup_key == "yes":
-                        continue
-                    if ticker == "GOODRICKE" and lookup_key == "good":
-                        continue
-
-                    seen_tickers.add(ticker)
-                    mentions.append(
-                        {
-                            "ticker": ticker,
-                            "match_type": "exact",
-                            "confidence": 1.0,
-                        }
-                    )
-                continue
-
-            # 3. If no exact match, check fuzzy matching ONLY for long entities
-            # This allows fuzzy matching on spelling mistakes ONLY if the word is classified as an Entity
-            if is_entity and len(lookup_key) >= 5 and " " in lookup_key:
-                known_names = corporate_dict.get_all_names()
-                match = process.extractOne(lookup_key, known_names, scorer=fuzz.ratio)
+        if entity_texts:
+            known_names = corporate_dict.get_all_names()
+            for entity in entity_texts:
+                entity_lower = entity.lower()
+                if entity_lower in EXCLUSION_BLACKLIST:
+                    continue
+                match = process.extractOne(entity_lower, known_names, scorer=fuzz.ratio)
                 if match:
                     matched_name, score, _ = match
-                    # Require high Levenshtein ratio for fuzzy spelling
-                    if score >= 90.0:
-                        if matched_name in EXCLUSION_BLACKLIST:
-                            continue
-
+                    if score >= 90.0 and matched_name not in EXCLUSION_BLACKLIST:
                         ticker = corporate_dict.get_ticker(matched_name)
-                        if ticker and ticker not in seen_tickers:
-                            seen_tickers.add(ticker)
-                            mentions.append(
-                                {
-                                    "ticker": ticker,
-                                    "match_type": "fuzzy",
-                                    "confidence": float(score) / 100.0,
-                                }
-                            )
+                        if ticker:
+                            _add(ticker, "fuzzy", float(score) / 100.0)
 
         return mentions
 

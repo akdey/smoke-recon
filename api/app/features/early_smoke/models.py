@@ -21,6 +21,7 @@ class Signal(Base):
     engagement_depth = Column(String, nullable=False)
     weight = Column(Float, default=1.0, nullable=False)
     url = Column(String, nullable=True)
+    sentiment = Column(Float, default=0.0, nullable=False)
 
     mentions = relationship(
         "Mention",

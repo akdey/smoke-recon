@@ -15,6 +15,7 @@ class WatchlistEntry(BaseModel):
     breakout_alpha_score: float
     social_mentions: int
     media_mentions: int
+    average_sentiment: float
     source_distribution: SourceDistribution
     timestamp_vectors: List[str]
 
@@ -63,6 +64,7 @@ class MentionDetailResponse(BaseModel):
     content_body: str
     timestamp: str
     url: Optional[str] = None
+    sentiment: float
     match_type: str
     confidence: float
 
@@ -74,3 +76,4 @@ class MostDiscussedEntry(BaseModel):
     social_mentions: int
     media_mentions: int
     breakout_alpha_score: float
+    average_sentiment: float

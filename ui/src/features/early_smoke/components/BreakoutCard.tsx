@@ -11,6 +11,13 @@ interface BreakoutCardProps {
 
 export default function BreakoutCard({ data, onSelect, isSelected }: BreakoutCardProps) {
   const sources = data.source_distribution;
+  const avgSent = data.average_sentiment || 0.0;
+  const sentimentLabel = avgSent > 0.15 ? 'Bullish' : avgSent < -0.15 ? 'Bearish' : 'Neutral';
+  const sentimentColor = avgSent > 0.15 
+    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' 
+    : avgSent < -0.15 
+      ? 'text-rose-450 bg-rose-500/10 border-rose-500/20' 
+      : 'text-slate-400 bg-slate-500/10 border-slate-500/20';
 
   return (
     <motion.div 
@@ -34,7 +41,12 @@ export default function BreakoutCard({ data, onSelect, isSelected }: BreakoutCar
         <div className="flex items-center justify-between">
           <div className="min-w-0 flex-1">
             <span className="text-xl font-bold tracking-tight text-white block truncate">{data.ticker}</span>
-            <span className="text-[11px] text-slate-400 block truncate mt-0.5">{data.company_name}</span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[11px] text-slate-400 truncate max-w-[120px]">{data.company_name}</span>
+              <span className={`text-[8px] font-extrabold px-1.5 py-0.2 rounded border uppercase tracking-wider font-mono shrink-0 ${sentimentColor}`}>
+                {sentimentLabel}
+              </span>
+            </div>
           </div>
           
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">

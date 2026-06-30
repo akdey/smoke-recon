@@ -11,6 +11,7 @@ export interface WatchlistEntry {
   breakout_alpha_score: number;
   social_mentions: number;
   media_mentions: number;
+  average_sentiment: number;
   source_distribution: SourceDistribution;
   timestamp_vectors: string[];
 }
@@ -59,6 +60,7 @@ export interface MentionDetail {
   content_body: string;
   timestamp: string;
   url: string | null;
+  sentiment: number;
   match_type: string;
   confidence: number;
 }
@@ -70,4 +72,5 @@ export interface MostDiscussedEntry {
   social_mentions: number;
   media_mentions: number;
   breakout_alpha_score: number;
+  average_sentiment: number;
 }

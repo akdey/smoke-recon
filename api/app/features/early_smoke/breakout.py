@@ -42,7 +42,7 @@ def generate_watchlist_data(
     for ticker in breakout_tickers:
         # Query all mentions for this ticker in the sliding window
         mentions_stmt = (
-            select(Mention, Signal.platform, Signal.weight)
+            select(Mention, Signal.platform, Signal.weight, Signal.sentiment)
             .join(Signal, Mention.signal_id == Signal.id)
             .where(Mention.ticker == ticker)
             .where(Mention.timestamp >= cutoff_time)
@@ -57,18 +57,21 @@ def generate_watchlist_data(
         source_dist: Dict[str, int] = {}
         timestamp_vectors: List[str] = []
         total_weighted_score = 0.0
+        sentiment_sum = 0.0
 
-        for mention, platform, weight in results:
+        for mention, platform, weight, sentiment in results:
             source_dist[platform] = source_dist.get(platform, 0) + 1
             timestamp_vectors.append(mention.timestamp.isoformat() + "Z")
-            # Score contribution = signal weight * mention match confidence
-            total_weighted_score += float(weight) * float(mention.confidence)
+            # Score contribution incorporates sentiment: (1.0 + sentiment) * weight * confidence
+            total_weighted_score += float(weight) * float(mention.confidence) * (1.0 + float(sentiment))
+            sentiment_sum += float(sentiment)
 
         # Sort timestamp vectors chronologically
         timestamp_vectors.sort()
 
         # Resolve company name dynamically using corporate dictionary
         company_name = corporate_dict.get_company_name(ticker)
+        avg_sentiment = round(sentiment_sum / total_mentions, 2) if total_mentions > 0 else 0.0
 
         watchlist.append(
             {
@@ -77,6 +80,7 @@ def generate_watchlist_data(
                 "breakout_alpha_score": round(total_weighted_score, 2),
                 "social_mentions": total_mentions,
                 "media_mentions": 0,
+                "average_sentiment": avg_sentiment,
                 "source_distribution": {
                     "reddit": source_dist.get("reddit", 0),
                     "twitter": source_dist.get("twitter", 0),
@@ -106,7 +110,7 @@ def get_recent_mentions_for_ticker(
     """
     cutoff_time = datetime.utcnow() - timedelta(days=days)
     stmt = (
-        select(Mention, Signal.platform, Signal.content_body, Signal.url)
+        select(Mention, Signal.platform, Signal.content_body, Signal.url, Signal.sentiment)
         .join(Signal, Mention.signal_id == Signal.id)
         .where(Mention.ticker == ticker)
         .where(Mention.timestamp >= cutoff_time)
@@ -115,7 +119,7 @@ def get_recent_mentions_for_ticker(
     results = db.execute(stmt).all()
     
     mentions = []
-    for mention, platform, content_body, url in results:
+    for mention, platform, content_body, url, sentiment in results:
         mentions.append(
             {
                 "id": mention.id,
@@ -123,6 +127,7 @@ def get_recent_mentions_for_ticker(
                 "content_body": content_body,
                 "timestamp": mention.timestamp.isoformat() + "Z",
                 "url": url,
+                "sentiment": float(sentiment),
                 "match_type": mention.match_type,
                 "confidence": float(mention.confidence),
             }
@@ -163,15 +168,19 @@ def generate_most_discussed_data(db: Session, days: int = 7) -> List[Dict[str, A
         media_count = media_map.get(ticker, 0)
         total_count = social_count + media_count
         
-        # Calculate total weighted breakout score for social mentions
+        # Calculate total weighted breakout score and average sentiment
         mentions_stmt = (
-            select(Mention, Signal.weight)
+            select(Mention, Signal.weight, Signal.sentiment)
             .join(Signal, Mention.signal_id == Signal.id)
             .where(Mention.ticker == ticker)
             .where(Mention.timestamp >= cutoff_time)
         )
         results = db.execute(mentions_stmt).all()
-        total_weighted_score = sum(float(weight) * float(mention.confidence) for mention, weight in results)
+        total_weighted_score = sum(
+            float(weight) * float(mention.confidence) * (1.0 + float(sentiment))
+            for mention, weight, sentiment in results
+        )
+        avg_sentiment = round(sum(float(s) for _, _, s in results) / len(results), 2) if results else 0.0
         
         company_name = corporate_dict.get_company_name(ticker)
         
@@ -183,6 +192,7 @@ def generate_most_discussed_data(db: Session, days: int = 7) -> List[Dict[str, A
                 "social_mentions": social_count,
                 "media_mentions": media_count,
                 "breakout_alpha_score": round(total_weighted_score, 2),
+                "average_sentiment": avg_sentiment,
             }
         )
         

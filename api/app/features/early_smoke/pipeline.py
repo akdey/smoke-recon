@@ -28,9 +28,35 @@ def clean_html(text: str) -> str:
             return soup.get_text().strip()
         except Exception:
             pass
-    # Regex fallback
-    text_no_tags = re.sub(r"<[^>]+>", "", text_no_comments)
-    return text_no_tags.strip()
+    return text.strip()
+
+
+def analyze_financial_sentiment(text: str) -> float:
+    """
+    Computes financial sentiment polarity score from -1.0 (bearish) to 1.0 (bullish).
+    """
+    text_lower = text.lower()
+    
+    bullish_words = [
+        "bull", "bullish", "buy", "accumulate", "growth", "profit", "multibagger",
+        "upward", "breakout", "rally", "gain", "gains", "positive", "high", "long",
+        "opportunity", "undervalued", "strong", "target", "green", "upper circuit", "uc"
+    ]
+    
+    bearish_words = [
+        "bear", "bearish", "sell", "dump", "loss", "losses", "scam", "decline",
+        "downward", "crash", "negative", "low", "short", "overvalued", "weak",
+        "trap", "red", "lower circuit", "lc", "risk", "risky", "avoid", "debt"
+    ]
+    
+    bull_count = sum(text_lower.count(word) for word in bullish_words)
+    bear_count = sum(text_lower.count(word) for word in bearish_words)
+    
+    total = bull_count + bear_count
+    if total == 0:
+        return 0.0
+        
+    return float((bull_count - bear_count) / total)
 
 
 def compute_unique_hash(platform: str, thread_id: str, content_body: str) -> str:
@@ -58,6 +84,7 @@ def ingest_social_post(db: Session, post_data: Dict[str, Any]) -> bool:
     if not platform or not content_body:
         return False
 
+    sentiment = analyze_financial_sentiment(content_body)
     unique_post_hash = compute_unique_hash(platform, thread_id, content_body)
 
     # Fast check to avoid database write attempts on duplicates
@@ -86,6 +113,7 @@ def ingest_social_post(db: Session, post_data: Dict[str, Any]) -> bool:
         engagement_depth=engagement_depth,
         weight=weight,
         url=url,
+        sentiment=sentiment,
     )
 
     try:
@@ -118,7 +146,11 @@ def ingest_social_post(db: Session, post_data: Dict[str, Any]) -> bool:
                     message=f"Matched '{m['ticker']}' in {platform} comment (Confidence: {int(m['confidence']*100)}%).",
                     ticker=m["ticker"],
                     source=platform,
-                    details={"body": content_body, "match_type": m["match_type"]}
+                    details={
+                        "body": content_body,
+                        "match_type": m["match_type"],
+                        "sentiment": sentiment,
+                    }
                 )
         else:
             broadcaster.broadcast(

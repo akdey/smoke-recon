@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from app.features.early_smoke.circuit_breaker import twitter_circuit_breaker
 from app.features.early_smoke.pipeline import ingest_social_post
+from app.features.early_smoke.broadcaster import broadcaster
 
 logger = logging.getLogger("twitter_worker")
 
@@ -53,9 +54,19 @@ def run_twitter_ingestion(db: Session) -> None:
         logger.warning(
             "X/Twitter circuit breaker is OPEN. Suspending scraper run (cooling down)."
         )
+        broadcaster.broadcast(
+            event_type="circuit_breaker",
+            message="X/Twitter circuit breaker is OPEN (rate-limit cooldown active). Skipping this cycle.",
+            source="twitter",
+        )
         return
 
     logger.info("Executing X/Twitter scraper...")
+    broadcaster.broadcast(
+        event_type="system",
+        message="X/Twitter crawler started. Searching public indexed tweets via DDG...",
+        source="twitter",
+    )
     try:
         tweets = scrape_twitter()
 
@@ -64,13 +75,22 @@ def run_twitter_ingestion(db: Session) -> None:
             if ingest_social_post(db, tweet):
                 success_count += 1
 
-        # Record success to close/reset the circuit
         twitter_circuit_breaker.record_success(db)
         logger.info(
             f"X/Twitter ingestion completed successfully. Saved {success_count}/{len(tweets)} tweets."
         )
+        broadcaster.broadcast(
+            event_type="system",
+            message=f"X/Twitter crawl completed. Ingested {success_count}/{len(tweets)} new tweets.",
+            source="twitter",
+            details={"ingested": success_count, "total": len(tweets)},
+        )
 
     except Exception as e:
         logger.error(f"X/Twitter scraper failed: {e}")
-        # Record failure to increment error counter and potentially trip the circuit
         twitter_circuit_breaker.record_failure(db)
+        broadcaster.broadcast(
+            event_type="system",
+            message=f"X/Twitter crawler failed: {e}",
+            source="twitter",
+        )

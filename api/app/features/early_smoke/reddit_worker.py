@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from bs4 import BeautifulSoup
 from app.features.early_smoke.pipeline import ingest_social_post
+from app.features.early_smoke.broadcaster import broadcaster
 
 logger = logging.getLogger("reddit_worker")
 
@@ -224,6 +225,11 @@ def run_reddit_ingestion(db: Session) -> None:
     the RSS fallback.
     """
     logger.info("Starting Reddit comments ingestion...")
+    broadcaster.broadcast(
+        event_type="system",
+        message="Reddit crawler started. Fetching r/IndianStreetBets, r/stocks, r/wallstreetbets...",
+        source="reddit",
+    )
     client_id = os.getenv("REDDIT_CLIENT_ID")
     client_secret = os.getenv("REDDIT_CLIENT_SECRET")
 
@@ -233,14 +239,16 @@ def run_reddit_ingestion(db: Session) -> None:
         posts = fetch_reddit_comments_praw(client_id, client_secret)
 
     if not posts:
-        # Reddit's /new/ endpoint is fully JavaScript-rendered — the HTML scraper
-        # only receives a static shell page. Skip directly to the reliable RSS feed.
         logger.info("PRAW unavailable. Fetching live comments via public Reddit RSS feeds...")
         posts = fetch_reddit_comments_rss()
 
-    # Log if empty, but do not seed mock items
     if not posts:
         logger.info("Reddit comments feed returned empty.")
+        broadcaster.broadcast(
+            event_type="system",
+            message="Reddit RSS feeds returned no posts this cycle.",
+            source="reddit",
+        )
 
     success_count = 0
     for post in posts:
@@ -249,4 +257,10 @@ def run_reddit_ingestion(db: Session) -> None:
 
     logger.info(
         f"Reddit ingestion run completed. Ingested {success_count}/{len(posts)} new comments."
+    )
+    broadcaster.broadcast(
+        event_type="system",
+        message=f"Reddit crawl completed. Ingested {success_count}/{len(posts)} new posts.",
+        source="reddit",
+        details={"ingested": success_count, "total": len(posts)},
     )

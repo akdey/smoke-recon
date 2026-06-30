@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
 from app.features.early_smoke.pipeline import ingest_social_post
+from app.features.early_smoke.broadcaster import broadcaster
 
 logger = logging.getLogger("scrapy_spiders")
 
@@ -135,10 +136,24 @@ def run_message_boards_ingestion(db: Session) -> None:
     Scrapes and ingests content from Chittorgarh (IPO data) and ET Markets (RSS news).
     """
     logger.info("Starting Web Message Boards scraping...")
+    broadcaster.broadcast(
+        event_type="system",
+        message="Message board crawlers started. Fetching Chittorgarh IPOs and ET Markets RSS...",
+        source="message_boards",
+    )
 
     posts = []
-    posts.extend(scrape_chittorgarh_forum())
-    posts.extend(scrape_et_times_forum())
+    chit_posts = scrape_chittorgarh_forum()
+    et_posts = scrape_et_times_forum()
+    posts.extend(chit_posts)
+    posts.extend(et_posts)
+
+    broadcaster.broadcast(
+        event_type="system",
+        message=f"Crawl fetched: {len(chit_posts)} Chittorgarh rows, {len(et_posts)} ET Markets articles.",
+        source="message_boards",
+        details={"chittorgarh": len(chit_posts), "et_markets": len(et_posts)},
+    )
 
     if not posts:
         logger.info("Message boards crawl returned empty.")
@@ -150,4 +165,10 @@ def run_message_boards_ingestion(db: Session) -> None:
 
     logger.info(
         f"Message board ingestion completed. Saved {success_count}/{len(posts)} new messages."
+    )
+    broadcaster.broadcast(
+        event_type="system",
+        message=f"Message board ingestion completed. Saved {success_count}/{len(posts)} new entries.",
+        source="message_boards",
+        details={"ingested": success_count, "total": len(posts)},
     )

@@ -155,3 +155,18 @@ def get_health(db: Session = Depends(get_db)):
         scheduler=sched_status,
         circuit_breakers=schemas.CircuitBreakersStatus(twitter=cb_status),
     )
+
+
+@router.post("/circuit-breaker/reset")
+def reset_circuit_breaker(db: Session = Depends(get_db)):
+    """
+    Manually resets the Twitter circuit breaker to CLOSED state,
+    clearing any exponential backoff cooldown.
+    """
+    twitter_circuit_breaker.record_success(db)
+    broadcaster.broadcast(
+        event_type="circuit_breaker",
+        message="Twitter circuit breaker manually reset to CLOSED by operator.",
+        source="twitter",
+    )
+    return {"status": "ok", "message": "Twitter circuit breaker reset to CLOSED."}

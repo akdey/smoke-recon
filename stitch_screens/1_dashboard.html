@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SMOKE RECON ENGINE | Hype Breakout Watchlist</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Hanken+Grotesk:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#3c0091",
+                        "on-primary-fixed-variant": "#005233",
+                        "inverse-on-surface": "#2d3135",
+                        "on-tertiary-fixed-variant": "#900037",
+                        "bear-glow": "#9F1239",
+                        "background": "#101418",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "secondary-fixed": "#e9ddff",
+                        "bull-glow": "#059669",
+                        "surface-container-low": "#191c20",
+                        "inverse-primary": "#006c46",
+                        "primary-fixed-dim": "#00e296",
+                        "on-secondary-fixed": "#23005c",
+                        "void-obsidian": "#030508",
+                        "secondary": "#d0bcff",
+                        "on-secondary-container": "#c4abff",
+                        "inverse-surface": "#e0e2e8",
+                        "on-tertiary-fixed": "#400014",
+                        "surface": "#101418",
+                        "outline": "#849589",
+                        "primary-container": "#00f2a1",
+                        "on-tertiary": "#670024",
+                        "error": "#ffb4ab",
+                        "on-primary-container": "#006943",
+                        "primary-fixed": "#4dffb1",
+                        "tertiary": "#ffecee",
+                        "on-surface": "#e0e2e8",
+                        "on-background": "#e0e2e8",
+                        "mesh-teal": "#06B6D4",
+                        "on-primary-fixed": "#002112",
+                        "error-container": "#93000a",
+                        "surface-container-highest": "#32353a",
+                        "tertiary-fixed-dim": "#ffb2bd",
+                        "tertiary-fixed": "#ffd9dd",
+                        "surface-tint": "#00e296",
+                        "mesh-orchid": "#D946EF",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "surface-container-high": "#272a2f",
+                        "specular-glow": "rgba(255, 255, 255, 0.08)",
+                        "secondary-container": "#571bc1",
+                        "tertiary-container": "#ffc6cd",
+                        "surface-variant": "#32353a",
+                        "surface-bright": "#36393e",
+                        "surface-container": "#1d2024",
+                        "abyssal-slate": "#0A0E17",
+                        "on-primary": "#003822",
+                        "outline-variant": "#3b4a40",
+                        "glass-plate-bg": "rgba(13, 20, 35, 0.45)",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#0b0e13",
+                        "on-tertiary-container": "#b70047",
+                        "surface-dim": "#101418",
+                        "on-error": "#690005",
+                        "primary": "#c0ffd9",
+                        "mesh-cobalt": "#4F46E5",
+                        "on-surface-variant": "#b9cbbe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "1.5rem",
+                        "grid-margin": "2rem"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Sora"],
+                        "headline-md": ["Sora"],
+                        "data-mono": ["JetBrains Mono"],
+                        "metadata-tiny": ["JetBrains Mono"],
+                        "body-base": ["Hanken Grotesk"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #030508;
+            color: #e0e2e8;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(13, 20, 35, 0.45);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+        }
+
+        .specular-highlight {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.03);
+        }
+
+        .sentiment-bull {
+            color: #00f2a1;
+            text-shadow: 0 0 10px rgba(0, 242, 161, 0.4);
+        }
+
+        .sentiment-bear {
+            color: #ffb4ab;
+            text-shadow: 0 0 10px rgba(255, 180, 171, 0.4);
+        }
+
+        .mesh-gradient-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(217, 70, 239, 0.1) 0%, transparent 40%);
+            animation: drift 30s infinite alternate linear;
+        }
+
+        @keyframes drift {
+            from { transform: scale(1); }
+            to { transform: scale(1.1) translate(20px, 10px); }
+        }
+
+        .sparkline-container svg {
+            filter: drop-shadow(0 0 4px currentColor);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-base text-body-base">
+<div class="mesh-gradient-bg"></div>
+<!-- Top Navigation Anchor (Desktop/Mobile Hybrid) -->
+<header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm flex justify-between items-center w-full px-gutter h-16"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[24px]">sensors</span><span class="font-data-mono text-metadata-tiny tracking-widest text-primary font-bold">RECON_ENG</span></div><div class="flex items-center gap-3"><span class="material-symbols-outlined text-on-surface-variant cursor-pointer text-[20px]">notifications</span><div class="w-8 h-8 rounded-full border border-primary-container/20 bg-surface-container-high overflow-hidden"><img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsDyoCpk4TkeFUzVtoeIlfZhAkWSLiTHaOIxKRs86YxyypyzuOg-EFzW5ocv_-cCDRgN-apxc-BgbTZJoQLBN1qONBzkNS7D1iuRMixJ_fEs5GnIdoU2aysQreKdiWVgj1by6JIErhkaPjG7mu-E3j61Jbrvg7dIcyqMwIJ7GWrd56N562aAT-IF8BwJMcn7ErF9Seg9Ed7KvS4_y_588ed2dq3G2MI6g46PShGsxGb9gtrJy3BfmJTnUQMzcyTKBAk4VlhUh9YA"/></div></div></header>
+<main class="px-gutter pb-32">
+<!-- System Status Banner -->
+<section class="mt-6">
+<div class="glass-card px-4 py-3 flex justify-between items-center rounded-lg border-primary-container/10">
+<div class="flex items-center gap-3">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<span class="font-data-mono text-data-mono text-primary uppercase tracking-tighter">System Health: Nominal</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-data-mono text-data-mono text-on-surface-variant">Active Jobs: 14</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">terminal</span>
+</div>
+</div>
+</section>
+<!-- Page Hero / Identity -->
+<section class="mt-8 mb-6">
+<h1 class="font-display-lg text-[32px] font-bold leading-tight tracking-tight">Hype Breakout Watchlist</h1>
+<p class="text-on-surface-variant mt-2 font-body-base leading-relaxed opacity-80">
+<span class="text-primary font-bold">Set Difference Logic:</span> Surfacing tickers active in 32+ social streams (Set A) but absent from traditional financial media outlets (Set B).
+            </p>
+</section>
+<!-- Segmented Control Tabs -->
+<nav class="flex gap-1 p-1 bg-void-obsidian/60 border border-outline-variant/20 rounded-xl mb-8">
+<button class="flex-1 py-3 text-center rounded-lg font-headline-md text-[14px] bg-primary-container/10 text-primary border-b-2 border-primary transition-all">
+                Hype Breakouts
+            </button>
+<button class="flex-1 py-3 text-center rounded-lg font-headline-md text-[14px] text-on-surface-variant hover:text-on-surface transition-all">
+                Most Discussed
+            </button>
+</nav>
+<!-- Breakout Cards List -->
+<div class="space-y-4">
+<!-- Card 1 -->
+<div class="glass-card rounded-lg relative group active:scale-[0.98] transition-transform p-3 flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<h2 class="font-display-lg text-[20px] text-white font-bold">$NEURAL_X</h2>
+<span class="font-data-mono text-[10px] text-primary tracking-widest uppercase bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">SME IPO</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase mr-2">Alpha</span>
+<span class="font-display-lg text-[18px] sentiment-bull font-bold">98.4</span>
+</div>
+<button class="bg-primary/10 border border-primary/20 text-primary font-data-mono text-[10px] px-2 py-1 rounded uppercase hover:bg-primary/20 transition-all">Investigate</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/10">
+<div class="flex items-center justify-between">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase">Mentions</span>
+<span class="font-data-mono text-[14px] text-white">4,281 <span class="text-[10px] text-primary">+12%</span></span>
+</div>
+<div class="flex items-center justify-between pl-2 border-l border-outline-variant/10">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase">Sentiment</span>
+<span class="font-data-mono text-[14px] sentiment-bull">BULLISH</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-card rounded-lg relative group active:scale-[0.98] transition-transform p-3 flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<h2 class="font-display-lg text-[20px] text-white font-bold">$SOLAR_CORE</h2>
+<span class="font-data-mono text-[10px] text-on-secondary-container tracking-widest uppercase bg-secondary-container/20 px-1.5 py-0.5 rounded border border-secondary-container/30">MAINBOARD</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase mr-2">Alpha</span>
+<span class="font-display-lg text-[18px] sentiment-bull font-bold">82.1</span>
+</div>
+<button class="bg-primary/10 border border-primary/20 text-primary font-data-mono text-[10px] px-2 py-1 rounded uppercase hover:bg-primary/20 transition-all">Investigate</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/10">
+<div class="flex items-center justify-between">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase">Mentions</span>
+<span class="font-data-mono text-[14px] text-white">1,942 <span class="text-[10px] text-primary">+8%</span></span>
+</div>
+<div class="flex items-center justify-between pl-2 border-l border-outline-variant/10">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase">Sentiment</span>
+<span class="font-data-mono text-[14px] text-primary">STABLE</span>
+</div>
+</div>
+</div>
+<!-- Card 3 (Bearish Example) -->
+<div class="glass-card rounded-lg relative group active:scale-[0.98] transition-transform p-3 flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<h2 class="font-display-lg text-[20px] text-white font-bold">$QUANT_L</h2>
+<span class="font-data-mono text-[10px] text-primary tracking-widest uppercase bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">SME IPO</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase mr-2">Alpha</span>
+<span class="font-display-lg text-[18px] sentiment-bear font-bold">44.5</span>
+</div>
+<button class="bg-error/10 border border-error/20 text-error font-data-mono text-[10px] px-2 py-1 rounded uppercase hover:bg-error/20 transition-all">Investigate</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/10">
+<div class="flex items-center justify-between">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase">Mentions</span>
+<span class="font-data-mono text-[14px] text-white">840 <span class="text-[10px] text-error">-15%</span></span>
+</div>
+<div class="flex items-center justify-between pl-2 border-l border-outline-variant/10">
+<span class="font-metadata-tiny text-[10px] text-on-surface-variant uppercase">Sentiment</span>
+<span class="font-data-mono text-[14px] sentiment-bear">BEARISH</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full h-16 md:hidden flex justify-around items-center bg-surface/80 backdrop-blur-xl border-t border-outline-variant/20 z-50">
+<div class="flex flex-col items-center gap-1 text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-metadata-tiny text-metadata-tiny">HOME</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[24px]">explore</span>
+<span class="font-metadata-tiny text-metadata-tiny">EXPLORE</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[24px]">hub</span>
+<span class="font-metadata-tiny text-metadata-tiny">STREAMS</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="font-metadata-tiny text-metadata-tiny">PROFILE</span>
+</div>
+</nav>
+<!-- Contextual FAB (Deploy Probe) -->
+<button class="fixed bottom-20 right-6 px-4 h-12 rounded-full bg-primary-container text-on-primary-container shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition-all z-40 border border-white/20 font-data-mono text-metadata-tiny font-bold"><span class="material-symbols-outlined text-[20px]">rocket_launch</span><span>QUICK DEPLOY</span></button>
+<script>
+        // Micro-interaction: Card Glow Follow
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

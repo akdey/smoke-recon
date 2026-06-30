@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SMOKE RECON ENGINE | Weightage Matrix</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Hanken+Grotesk:wght@400;500&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        :root {
+            --glass-bg: rgba(13, 20, 35, 0.45);
+            --specular-glow: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: #030508;
+            color: #e0e2e8;
+            overflow-x: hidden;
+        }
+
+        .glass-plate {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 2px 4px var(--specular-glow);
+        }
+
+        .sentiment-jade {
+            color: #c0ffd9;
+            filter: drop-shadow(0 0 8px rgba(5, 150, 105, 0.4));
+        }
+
+        .sentiment-rose {
+            color: #ffb2bd;
+            filter: drop-shadow(0 0 8px rgba(159, 18, 57, 0.4));
+        }
+
+        /* Custom Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(185, 203, 190, 0.2);
+            border-radius: 2px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #c0ffd9;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -8px;
+            box-shadow: 0 0 15px rgba(192, 255, 217, 0.6);
+            border: 2px solid #030508;
+        }
+
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .active-tab-indicator {
+            height: 2px;
+            background: #c0ffd9;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-base text-body-base bg-void-obsidian">
+<!-- Background Atmospheric Layer -->
+<div class="mesh-gradient">
+
+</div>
+<!-- Top Navigation Bar -->
+<header class="bg-surface/80 backdrop-blur-md text-primary font-display-lg text-display-lg font-headline-md text-headline-md font-body-md text-body-md font-data-md text-data-md font-label-caps text-label-caps docked full-width top-0 sticky border-b border-outline-variant/30 shadow-sm flex justify-between items-center w-full px-gutter h-16 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-label-caps text-label-caps tracking-widest text-primary">SMOKE RECON ENGINE</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined cursor-pointer active:scale-95 text-on-surface-variant hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined cursor-pointer active:scale-95 text-on-surface-variant hover:text-primary transition-colors">settings</span>
+</div>
+</header>
+<main class="px-6 py-8 pb-32 max-w-lg mx-auto">
+<!-- Header Section -->
+<div class="mb-8">
+<h1 class="font-headline-md text-headline-md text-primary mb-1">Weightage Matrix</h1>
+<p class="text-on-surface-variant text-sm opacity-80">Configure signal source influence for the Aeva Chronos core.</p>
+</div>
+<!-- Matrix Controls -->
+<div class="space-y-4">
+<!-- Reddit Body -->
+<div class="glass-plate p-5 rounded-xl transition-all duration-300 hover:border-primary/20">
+<div class="flex justify-between items-end mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-primary">forum</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-primary leading-none mb-1">Reddit Body</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Primary Context</p>
+</div>
+</div>
+<div class="font-data-mono text-data-mono text-primary text-xl" id="val-reddit-body">45%</div>
+</div>
+<input class="w-full" max="100" min="0" oninput="updateVal('reddit-body', this.value)" type="range" value="45"/>
+</div>
+<!-- Reddit Nested -->
+<div class="glass-plate p-5 rounded-xl transition-all duration-300 hover:border-primary/20">
+<div class="flex justify-between items-end mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center border border-secondary/20">
+<span class="material-symbols-outlined text-secondary">account_tree</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-secondary leading-none mb-1">Reddit Nested</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Sentiment Depth</p>
+</div>
+</div>
+<div class="font-data-mono text-data-mono text-secondary text-xl" id="val-reddit-nested">20%</div>
+</div>
+<input class="w-full" max="100" min="0" oninput="updateVal('reddit-nested', this.value)" type="range" value="20"/>
+</div>
+<!-- X / Twitter -->
+<div class="glass-plate p-5 rounded-xl transition-all duration-300 hover:border-primary/20">
+<div class="flex justify-between items-end mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-mesh-teal/10 flex items-center justify-center border border-mesh-teal/20">
+<span class="material-symbols-outlined text-mesh-teal">bolt</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-mesh-teal leading-none mb-1">X/Twitter</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Velocity Filter</p>
+</div>
+</div>
+<div class="font-data-mono text-data-mono text-mesh-teal text-xl" id="val-x-twitter">25%</div>
+</div>
+<input class="w-full" max="100" min="0" oninput="updateVal('x-twitter', this.value)" type="range" value="25"/>
+</div>
+<!-- Message Boards -->
+<div class="glass-plate p-5 rounded-xl transition-all duration-300 hover:border-primary/20">
+<div class="flex justify-between items-end mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed-dim/10 flex items-center justify-center border border-tertiary-fixed-dim/20">
+<span class="material-symbols-outlined text-tertiary-fixed-dim">terminal</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-tertiary-fixed-dim leading-none mb-1">Message Boards</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Historical Baseline</p>
+</div>
+</div>
+<div class="font-data-mono text-data-mono text-tertiary-fixed-dim text-xl" id="val-boards">10%</div>
+</div>
+<input class="w-full" max="100" min="0" oninput="updateVal('boards', this.value)" type="range" value="10"/>
+</div>
+</div>
+<!-- Action Grid -->
+<div class="grid grid-cols-2 gap-4 mt-8">
+<button class="glass-plate py-4 rounded-xl font-label-caps text-label-caps text-on-surface-variant active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">history</span>
+                RESET DEFAULTS
+            </button>
+<button class="bg-primary/20 border border-primary/40 py-4 rounded-xl font-label-caps text-label-caps text-primary active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(192,255,217,0.15)]">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                COMMIT MATRIX
+            </button>
+</div>
+<!-- Simulation Preview Section -->
+<section class="mt-12">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant tracking-wider">Simulation Preview</h2>
+<span class="text-[10px] font-data-mono text-primary flex items-center gap-1">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                    LIVE ENGINE
+                </span>
+</div>
+<div class="glass-plate p-6 rounded-2xl relative overflow-hidden">
+<!-- Background visual noise -->
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl">query_stats</span>
+</div>
+<div class="flex flex-col items-center py-4">
+<div class="relative w-32 h-32 flex items-center justify-center mb-4">
+<!-- Simulated radial progress -->
+<svg class="absolute inset-0 w-full h-full -rotate-90">
+<circle cx="64" cy="64" fill="none" r="58" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle>
+<circle class="transition-all duration-700 ease-out" cx="64" cy="64" fill="none" id="preview-ring" r="58" stroke="#c0ffd9" stroke-dasharray="364.4" stroke-dashoffset="80" stroke-width="8"></circle>
+</svg>
+<div class="text-center">
+<p class="font-data-mono text-data-mono text-3xl text-primary" id="confidence-score">78.2</p>
+<p class="text-[9px] text-on-surface-variant font-label-caps tracking-tighter">CONFIDENCE</p>
+</div>
+</div>
+<div class="w-full grid grid-cols-2 gap-4 mt-2">
+<div class="text-center border-r border-outline-variant/20">
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Variance</p>
+<p class="font-data-mono text-data-mono sentiment-jade">+1.42%</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Latency</p>
+<p class="font-data-mono text-data-mono text-on-surface">42ms</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/10 z-50 px-6 h-20 flex items-center justify-between">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant cursor-pointer">
+<span class="material-symbols-outlined">sensors</span>
+<span class="text-[10px] font-label-caps">SIGNAL</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant cursor-pointer">
+<span class="material-symbols-outlined">hub</span>
+<span class="text-[10px] font-label-caps">SOURCE</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary cursor-pointer relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">monitor_heart</span>
+<span class="text-[10px] font-label-caps">MATRIX</span>
+<div class="active-tab-indicator -bottom-4"></div>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant cursor-pointer">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-label-caps">SYSTEM</span>
+</div>
+</nav>
+<script>
+        function updateVal(id, value) {
+            document.getElementById(`val-${id}`).innerText = value + '%';
+            
+            // Artificial simulation logic for the confidence score
+            const allValues = [
+                parseInt(document.querySelector('input[oninput*="reddit-body"]').value),
+                parseInt(document.querySelector('input[oninput*="reddit-nested"]').value),
+                parseInt(document.querySelector('input[oninput*="x-twitter"]').value),
+                parseInt(document.querySelector('input[oninput*="boards"]').value)
+            ];
+            
+            const total = allValues.reduce((a, b) => a + b, 0);
+            const score = (total / 400) * 100;
+            const normalizedScore = (score + 50).toFixed(1);
+            
+            document.getElementById('confidence-score').innerText = normalizedScore;
+            
+            // Update the ring
+            const ring = document.getElementById('preview-ring');
+            const circumference = 2 * Math.PI * 58;
+            const offset = circumference - (normalizedScore / 100) * circumference;
+            ring.style.strokeDashoffset = offset;
+        }
+
+        // Initialize ring
+        window.onload = () => updateVal('reddit-body', 45);
+    </script>
+</body></html>

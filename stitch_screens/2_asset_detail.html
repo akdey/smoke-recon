@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Hanken+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        :root {
+            --glass-bg: rgba(13, 20, 35, 0.45);
+            --specular: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: #030508;
+            color: #e0e2e8;
+            overflow-x: hidden;
+            font-family: 'Hanken Grotesk', sans-serif;
+        }
+
+        .glass-plate {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 2px 4px var(--specular);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-plate::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 50%);
+            pointer-events: none;
+        }
+
+        .sentiment-bull {
+            color: #059669;
+            text-shadow: 0 0 12px rgba(5, 150, 105, 0.4);
+        }
+
+        .sentiment-bear {
+            color: #9F1239;
+            text-shadow: 0 0 12px rgba(159, 18, 57, 0.4);
+        }
+
+        .mesh-gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(185, 203, 190, 0.2);
+            border-radius: 10px;
+        }
+
+        .alpha-radial {
+            background: conic-gradient(from 0deg, #00f2a1 0%, #00f2a1 85%, transparent 85%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary": "#3c0091",
+                        "on-primary-fixed-variant": "#005233",
+                        "inverse-on-surface": "#2d3135",
+                        "on-tertiary-fixed-variant": "#900037",
+                        "bear-glow": "#9F1239",
+                        "background": "#101418",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "secondary-fixed": "#e9ddff",
+                        "bull-glow": "#059669",
+                        "surface-container-low": "#191c20",
+                        "inverse-primary": "#006c46",
+                        "primary-fixed-dim": "#00e296",
+                        "on-secondary-fixed": "#23005c",
+                        "void-obsidian": "#030508",
+                        "secondary": "#d0bcff",
+                        "on-secondary-container": "#c4abff",
+                        "inverse-surface": "#e0e2e8",
+                        "on-tertiary-fixed": "#400014",
+                        "surface": "#101418",
+                        "outline": "#849589",
+                        "primary-container": "#00f2a1",
+                        "on-tertiary": "#670024",
+                        "error": "#ffb4ab",
+                        "on-primary-container": "#006943",
+                        "primary-fixed": "#4dffb1",
+                        "tertiary": "#ffecee",
+                        "on-surface": "#e0e2e8",
+                        "on-background": "#e0e2e8",
+                        "mesh-teal": "#06B6D4",
+                        "on-primary-fixed": "#002112",
+                        "error-container": "#93000a",
+                        "surface-container-highest": "#32353a",
+                        "tertiary-fixed-dim": "#ffb2bd",
+                        "tertiary-fixed": "#ffd9dd",
+                        "surface-tint": "#00e296",
+                        "mesh-orchid": "#D946EF",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "surface-container-high": "#272a2f",
+                        "specular-glow": "rgba(255, 255, 255, 0.04)",
+                        "secondary-container": "#571bc1",
+                        "tertiary-container": "#ffc6cd",
+                        "surface-variant": "#32353a",
+                        "surface-bright": "#36393e",
+                        "surface-container": "#1d2024",
+                        "abyssal-slate": "#0A0E17",
+                        "on-primary": "#003822",
+                        "outline-variant": "#3b4a40",
+                        "glass-plate-bg": "rgba(13, 20, 35, 0.45)",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#0b0e13",
+                        "on-tertiary-container": "#b70047",
+                        "surface-dim": "#101418",
+                        "on-error": "#690005",
+                        "primary": "#c0ffd9",
+                        "mesh-cobalt": "#4F46E5",
+                        "on-surface-variant": "#b9cbbe"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "unit": "4px",
+                        "gutter": "1.5rem",
+                        "grid-margin": "2rem"
+                    },
+                    fontFamily: {
+                        "display-lg": ["Sora"],
+                        "headline-md": ["Sora"],
+                        "headline-sm": ["Sora"],
+                        "data-mono": ["JetBrains Mono"],
+                        "metadata-tiny": ["JetBrains Mono"],
+                        "body-base": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    fontSize: {
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-sm": ["18px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "data-mono": ["12px", { "lineHeight": "1.4", "letterSpacing": "0.1em", "fontWeight": "500" }],
+                        "metadata-tiny": ["10px", { "lineHeight": "1.2", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "body-base": ["16px", { "lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "1", "letterSpacing": "0.15em", "fontWeight": "700" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-void-obsidian">
+<div class="mesh-gradient-bg">
+
+</div>
+<!-- TopNavBar -->
+<header class="bg-surface/80 backdrop-blur-md text-primary font-display-lg text-display-lg font-headline-md text-headline-md font-body-md text-body-md font-data-md text-data-md font-label-caps text-label-caps docked full-width top-0 sticky border-b border-outline-variant/30 shadow-sm flex justify-between items-center w-full px-gutter h-16 z-50">
+<div class="flex items-center gap-8">
+<span class="font-label-caps text-label-caps tracking-widest text-primary">SMOKE RECON ENGINE</span>
+<div class="hidden md:flex gap-6 items-center">
+<span class="text-primary border-b-2 border-primary cursor-pointer active:scale-95 transition-colors duration-200">SIGNAL ANALYSIS</span>
+<span class="text-on-surface-variant hover:text-primary cursor-pointer active:scale-95 transition-colors duration-200">NETWORK HEALTH</span>
+<span class="text-on-surface-variant hover:text-primary cursor-pointer active:scale-95 transition-colors duration-200">HIVE ARCHIVE</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex gap-4">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all">schedule</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all">settings</span>
+</div>
+<img class="w-8 h-8 rounded-full border border-primary/30" data-alt="A futuristic circular avatar for a system operator, featuring glowing cyan biometric lines and high-tech digital elements on a dark reflective surface, cinematic lighting, 8k resolution, minimalist corporate tech style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuwOWJBbuBmb6BjYDpywj10vhWrfcbTElMZ3XwfdfpiiP1Zp_pF6WajiuEw2riLa4aAgKrrwIYJPanaXym3xkEs-wSj3-OBl756MjL9aOzlkBiDYhxLhong9oDeq1f7DpP9Xw-7_tovFhpnbI2hVMwNa2BZBuc2uQoTiDNES0uPSbLIWqULXncOoq49OhYZ5aMDuBXH0wopCHIjs5S1LtocLNGNIfPAWW9IGu_sdocYppit0KdCd49bt0jLgWtAjbnGg9MaZLE_w"/>
+</div>
+</header>
+<div class="flex h-[calc(100vh-64px)] overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col bg-surface-container font-headline-sm text-headline-sm font-label-caps text-label-caps font-data-md text-data-md fixed left-0 top-16 h-[calc(100vh-64px)] w-60 border-r border-outline-variant/20 py-margin z-40">
+<div class="px-6 mb-8">
+<h2 class="font-headline-md text-headline-md text-primary">RECON ENGINE</h2>
+<p class="font-label-caps text-[10px] text-on-surface-variant opacity-60">V2.0.4 STATUS: NOMINAL</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="bg-primary-container/10 text-primary border-l-4 border-primary px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sensors</span>
+<span>SIGNAL INTELLIGENCE</span>
+</div>
+<div class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all cursor-pointer">
+<span class="material-symbols-outlined">hub</span>
+<span>SOURCE DISTRIBUTION</span>
+</div>
+<div class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all cursor-pointer">
+<span class="material-symbols-outlined">monitor_heart</span>
+<span>PIPELINE HEALTH</span>
+</div>
+<div class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span>SETTINGS</span>
+</div>
+</nav>
+<div class="p-6">
+<button class="w-full py-3 bg-primary text-on-primary font-label-caps tracking-widest text-[12px] rounded-lg shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                    DEPLOY PROBE
+                </button>
+</div>
+<div class="mt-auto border-t border-outline-variant/10">
+<div class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high cursor-pointer">
+<span class="material-symbols-outlined">help</span>
+<span>Support</span>
+</div>
+<div class="text-on-surface-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high cursor-pointer">
+<span class="material-symbols-outlined">terminal</span>
+<span>Logs</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 lg:ml-60 p-grid-margin overflow-y-auto custom-scrollbar relative">
+<!-- Asset Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+<div>
+<div class="flex items-center gap-4 mb-2">
+<span class="font-data-mono text-label-caps px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded">BREAKOUT ASSET</span>
+<span class="text-on-surface-variant opacity-50 font-data-mono text-body-md">#ID-8829-PRB</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-white mb-2">$PROBE</h1>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<span class="font-data-mono text-headline-sm text-primary">+12.4%</span>
+<span class="font-label-caps text-on-surface-variant">24H VELOCITY</span>
+</div>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">groups</span>
+<span class="font-data-mono text-headline-sm text-white">4.2K</span>
+<span class="font-label-caps text-on-surface-variant">UNIQUE VOICES</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 border border-outline-variant/30 rounded-xl glass-plate font-label-caps text-primary hover:border-primary/50 transition-all">
+                        ADD TO HIVE
+                    </button>
+<button class="px-8 py-3 bg-primary text-on-primary font-label-caps rounded-xl shadow-xl shadow-primary/20 active:scale-95 transition-all">
+                        TRIGGER ALERT
+                    </button>
+</div>
+</div>
+<!-- Bento Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Alpha Score Card -->
+<div class="col-span-12 lg:col-span-4 glass-plate rounded-xl p-6 flex flex-col items-center justify-center min-h-[340px]">
+<div class="relative w-48 h-48 mb-6">
+<svg class="w-full h-full -rotate-90">
+<circle cx="96" cy="96" fill="transparent" r="88" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle>
+<circle cx="96" cy="96" fill="transparent" r="88" stroke="#00f2a1" stroke-dasharray="552.92" stroke-dashoffset="82.93" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display-lg text-white text-[56px] leading-none">85</span>
+<span class="font-label-caps text-primary text-[10px] tracking-widest mt-1">ALPHA SCORE</span>
+</div>
+</div>
+<div class="w-full space-y-4">
+<div class="flex justify-between items-center text-on-surface-variant font-label-caps text-[10px]">
+<span>SIGNAL WEIGHT</span>
+<span class="text-white">EXTREME</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[92%] shadow-[0_0_8px_rgba(0,242,161,0.5)]"></div>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant font-label-caps text-[10px]">
+<span>MATCH CONFIDENCE</span>
+<span class="text-white">88.4%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="h-full bg-mesh-teal w-[88%]"></div>
+</div>
+</div>
+</div>
+<!-- Mention Timeline Chart -->
+<div class="col-span-12 lg:col-span-8 glass-plate rounded-xl p-6 relative overflow-hidden">
+<div class="flex justify-between items-center mb-8 relative z-10">
+<div>
+<h3 class="font-headline-sm text-white">MENTION TIMELINE</h3>
+<p class="font-body-md text-on-surface-variant">Omnichannel social volume velocity</p>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-surface-container-highest text-white font-data-mono text-[10px] rounded cursor-pointer">1H</span>
+<span class="px-2 py-1 bg-primary text-on-primary font-data-mono text-[10px] rounded cursor-pointer">4H</span>
+<span class="px-2 py-1 bg-surface-container-highest text-white font-data-mono text-[10px] rounded cursor-pointer">24H</span>
+</div>
+</div>
+<div class="h-48 w-full relative">
+<!-- Simulated Area Chart with Mesh underneath -->
+<div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-primary/10 to-transparent"></div>
+<svg class="w-full h-full preserve-3d" viewbox="0 0 1000 200">
+<path d="M0,180 Q100,160 200,175 T400,100 T600,120 T800,40 T1000,60 L1000,200 L0,200 Z" fill="url(#chartGradient)" opacity="0.3"></path>
+<path d="M0,180 Q100,160 200,175 T400,100 T600,120 T800,40 T1000,60" fill="none" stroke="#00f2a1" stroke-width="2"></path>
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#00f2a1"></stop>
+<stop offset="100%" stop-color="transparent"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Floating Mesh Detail -->
+<div class="absolute inset-0 opacity-20 mix-blend-overlay">
+
+</div>
+</div>
+<div class="flex justify-between mt-4 font-data-mono text-[10px] text-on-surface-variant">
+<span>12:00</span>
+<span>13:00</span>
+<span>14:00</span>
+<span>15:00</span>
+<span>16:00</span>
+</div>
+</div>
+<!-- Source Distribution -->
+<div class="col-span-12 lg:col-span-5 glass-plate rounded-xl p-6">
+<h3 class="font-headline-sm text-white mb-6">SOURCE DISTRIBUTION</h3>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">forum</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between font-label-caps text-[11px] mb-1">
+<span class="text-white">X (TWITTER)</span>
+<span class="text-primary">42%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 42%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-[#ff4500]">
+<span class="material-symbols-outlined">rss_feed</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between font-label-caps text-[11px] mb-1">
+<span class="text-white">REDDIT</span>
+<span class="text-primary">28%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 28%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-mesh-teal">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between font-label-caps text-[11px] mb-1">
+<span class="text-white">ET TIMES / CHITTORGARH</span>
+<span class="text-primary">18%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 18%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">travel_explore</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between font-label-caps text-[11px] mb-1">
+<span class="text-white">OTHER</span>
+<span class="text-primary">12%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 12%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Social Signals Feed -->
+<div class="col-span-12 lg:col-span-7 glass-plate rounded-xl flex flex-col">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<h3 class="font-headline-sm text-white">SOCIAL SIGNALS</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">filter_list</span>
+</div>
+<div class="flex-1 overflow-y-auto max-h-[400px] custom-scrollbar p-6 space-y-6">
+<!-- Comment 1 -->
+<div class="flex gap-4">
+<img class="w-8 h-8 rounded-full" data-alt="A stylized minimalist profile picture of a tech analyst, neon outlines on dark background, sleek digital portrait." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5cuRZLpAg5698JNHMwyRRKKi_jTQvQDubjfxAb4jY-KM_Ty7YC_V2o-tkaYNqs2QdQHKajniWg-9hzo4Ogcgg2m5fPE-C9AM8C_iFIB6u2-vfjaL6Gc_kzH102N3bEybpHigob0owAfePjmbH6XKIOpuTwm_FMBwNZqbdPGETM2ohs522Zpl9ZqfhKWs9NyULDD_7rpL_9MxUaflbf5CNsVjCfqwOpZOkdfiifaelYgj-caRJkoLZVZmJKU2cbpgdhW4EhAljdw"/>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-headline-sm text-[14px] text-white">@alphahunter_99</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant opacity-50">• 4m ago</span>
+<span class="px-2 py-0.5 bg-bull-glow/20 text-primary font-label-caps text-[9px] rounded">BULLISH</span>
+</div>
+<p class="text-on-surface-variant text-body-md leading-relaxed">
+                                    Seeing massive whale movement in the $PROBE liquidity pools. Signal weight matches the 2021 breakout pattern perfectly. Mentions up 400% on dev channels.
+                                </p>
+<div class="mt-3 flex items-center gap-6">
+<div class="flex items-center gap-1 text-on-surface-variant font-data-mono text-[10px]">
+<span class="material-symbols-outlined text-[14px]">chat_bubble</span>
+<span>24</span>
+</div>
+<div class="flex items-center gap-1 text-primary font-data-mono text-[10px]">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span>152</span>
+</div>
+<div class="px-2 py-0.5 border border-outline-variant/30 text-on-surface-variant font-label-caps text-[9px] rounded">ENGAGEMENT DEPTH: HIGH</div>
+</div>
+</div>
+</div>
+<!-- Comment 2 -->
+<div class="flex gap-4 pl-12 border-l border-outline-variant/20">
+<img class="w-6 h-6 rounded-full" data-alt="A futuristic geometric abstract avatar for a crypto community member, cyan and obsidian color palette, clean professional digital art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQQ8Frs31Hume5Ax7l3ugx-Puu11mf8S2ysn63yxshIdI2CsLot0Z0M6tCyYzboeB79zvD7qpJWcr9yS00OvKdMnvc_z0LXdxtKx-KiONCPw1i3cz8lqyZ5xiHGJZKy-JIAVXd9m7HofFDcD1wEEmB8SIpOR1ecjDUqe41uzBvqnT2CiB4o2dZKpOG-Z-zqLynhriN6vNJCSU1R2JtRWJ_7YTb-30Y03_FrO-CkFl1O2DlG6NyyhdII83Im4VxI1rOgqPw-iiFHg"/>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-headline-sm text-[13px] text-white">quant_bot_v2</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant opacity-50">• 1m ago</span>
+</div>
+<p class="text-on-surface-variant text-body-md leading-relaxed">
+                                    Confirmed. My node just picked up the same volume spikes across 3 DEXs.
+                                </p>
+</div>
+</div>
+<!-- Comment 3 -->
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded-full bg-mesh-teal/20 flex items-center justify-center text-mesh-teal">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-headline-sm text-[14px] text-white">u/DeepValueProbe</span>
+<span class="font-data-mono text-[10px] text-on-surface-variant opacity-50">• 12m ago</span>
+</div>
+<p class="text-on-surface-variant text-body-md leading-relaxed">
+                                    $PROBE is literally the only thing being talked about on r/WallStreetBets right now. 14 separate threads in the last hour.
+                                </p>
+<div class="mt-3 flex items-center gap-6">
+<div class="flex items-center gap-1 text-on-surface-variant font-data-mono text-[10px]">
+<span class="material-symbols-outlined text-[14px]">chat_bubble</span>
+<span>8</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-data-mono text-[10px]">
+<span class="material-symbols-outlined text-[14px]">thumb_up</span>
+<span>310</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Margin for Activity Console -->
+<div class="h-24"></div>
+</main>
+</div>
+<!-- Floating Activity Console (Collapsible) -->
+<div class="fixed bottom-0 left-0 lg:left-60 right-0 z-50 transition-all duration-300 translate-y-[calc(100%-40px)]" id="activity-console">
+<div class="glass-plate border-t border-outline-variant/30 rounded-t-2xl shadow-2xl overflow-hidden">
+<!-- Header/Handle -->
+<div class="h-10 px-6 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors group" onclick="toggleConsole()">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-caps text-[10px] text-primary tracking-widest uppercase">REAL-TIME SSE LOGS</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform" id="console-chevron">expand_less</span>
+</div>
+<!-- Content -->
+<div class="h-64 bg-void-obsidian/90 p-6 font-data-mono text-[11px] overflow-y-auto custom-scrollbar">
+<div class="space-y-1">
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-40">[14:22:01.042]</span>
+<span class="text-mesh-teal">LOG_PIPE_READY:</span>
+<span class="text-white">Initializing stream for node $PROBE...</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-40">[14:22:01.156]</span>
+<span class="text-primary">STREAM_OPEN:</span>
+<span class="text-white">Websocket established at secure.smoke-recon.io</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-40">[14:22:02.881]</span>
+<span class="text-secondary">DATA_IN:</span>
+<span class="text-white opacity-70">{"event": "mention", "source": "twitter", "sentiment": 0.82, "velocity": 12.4}</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-40">[14:22:03.112]</span>
+<span class="text-bull-glow">RECON_MATCH:</span>
+<span class="text-primary">Alpha Pattern 'Breakout_V3' detected. Confidence 0.88</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-40">[14:22:04.445]</span>
+<span class="text-secondary">DATA_IN:</span>
+<span class="text-white opacity-70">{"event": "whale_move", "size": "1,200 ETH", "target": "PROBE/WETH"}</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-40">[14:22:05.109]</span>
+<span class="text-mesh-orchid">SYSTEM_ALERT:</span>
+<span class="text-white">Push notification sent to 1,422 hive members.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-40">[14:22:06.002]</span>
+<span class="text-primary">SYNC_OK:</span>
+<span class="text-white">Database write complete. Shard ID: 0xFF-99-01</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+        let consoleOpen = false;
+        function toggleConsole() {
+            const console = document.getElementById('activity-console');
+            const chevron = document.getElementById('console-chevron');
+            if (consoleOpen) {
+                console.style.transform = 'translateY(calc(100% - 40px))';
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                console.style.transform = 'translateY(0)';
+                chevron.style.transform = 'rotate(180deg)';
+            }
+            consoleOpen = !consoleOpen;
+        }
+
+        // Simple mock interaction for the chart points
+        document.querySelectorAll('svg path').forEach(path => {
+            path.addEventListener('mouseenter', () => {
+                path.style.filter = 'drop-shadow(0 0 10px rgba(0,242,161,0.5))';
+            });
+            path.addEventListener('mouseleave', () => {
+                path.style.filter = 'none';
+            });
+        });
+    </script>
+</body></html>

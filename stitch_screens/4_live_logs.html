@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MARKET RECON ENGINE - LIVE_LOGS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Hanken+Grotesk:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#002112",
+                    "surface-variant": "#32353a",
+                    "surface-dim": "#101418",
+                    "void-obsidian": "#030508",
+                    "tertiary-container": "#ffc6cd",
+                    "surface-container-low": "#191c20",
+                    "surface-container-high": "#272a2f",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed": "#23005c",
+                    "primary-fixed": "#4dffb1",
+                    "secondary-fixed-dim": "#d0bcff",
+                    "abyssal-slate": "#0A0E17",
+                    "secondary-fixed": "#e9ddff",
+                    "surface-container-highest": "#32353a",
+                    "mesh-orchid": "#D946EF",
+                    "surface-container": "#1d2024",
+                    "bull-glow": "#059669",
+                    "on-tertiary": "#670024",
+                    "tertiary-fixed": "#ffd9dd",
+                    "mesh-cobalt": "#4F46E5",
+                    "on-tertiary-fixed-variant": "#900037",
+                    "on-primary": "#003822",
+                    "glass-plate-bg": "rgba(13, 20, 35, 0.45)",
+                    "primary": "#c0ffd9",
+                    "mesh-teal": "#06B6D4",
+                    "surface-container-lowest": "#0b0e13",
+                    "outline": "#849589",
+                    "inverse-primary": "#006c46",
+                    "tertiary-fixed-dim": "#ffb2bd",
+                    "outline-variant": "#3b4a40",
+                    "on-surface": "#e0e2e8",
+                    "on-primary-fixed-variant": "#005233",
+                    "on-secondary-container": "#c4abff",
+                    "on-error": "#690005",
+                    "secondary-container": "#571bc1",
+                    "on-primary-container": "#006943",
+                    "inverse-on-surface": "#2d3135",
+                    "bear-glow": "#9F1239",
+                    "background": "#101418",
+                    "on-secondary-fixed-variant": "#5516be",
+                    "on-background": "#e0e2e8",
+                    "specular-glow": "rgba(255, 255, 255, 0.04)",
+                    "on-surface-variant": "#b9cbbe",
+                    "surface": "#101418",
+                    "on-tertiary-container": "#b70047",
+                    "on-tertiary-fixed": "#400014",
+                    "tertiary": "#ffecee",
+                    "surface-bright": "#36393e",
+                    "primary-container": "#00f2a1",
+                    "error-container": "#93000a",
+                    "on-secondary": "#3c0091",
+                    "surface-tint": "#00e296",
+                    "secondary": "#d0bcff",
+                    "error": "#ffb4ab",
+                    "primary-fixed-dim": "#00e296",
+                    "inverse-surface": "#e0e2e8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "grid-margin": "2rem",
+                    "unit": "4px",
+                    "gutter": "1.5rem"
+            },
+            "fontFamily": {
+                    "display-lg": ["Sora"],
+                    "headline-md": ["Sora"],
+                    "data-mono": ["JetBrains Mono"],
+                    "metadata-tiny": ["JetBrains Mono"],
+                    "body-base": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "data-mono": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "metadata-tiny": ["10px", {"lineHeight": "1.2", "letterSpacing": "0.15em", "fontWeight": "700"}],
+                    "body-base": ["16px", {"lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .specular-glow {
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .terminal-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .terminal-scroll::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .terminal-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        @keyframes pulse-dot {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        .syncing-dot {
+            animation: pulse-dot 1.5s infinite;
+        }
+        .scanline {
+            background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-void-obsidian text-on-surface font-body-base overflow-hidden selection:bg-primary/30 selection:text-primary">
+<!-- Background Atmospheric Effect -->
+<div class="fixed inset-0 z-0 opacity-20">
+
+</div>
+<!-- Top Navigation Bar (Shared Component Strategy) -->
+<header class="fixed top-0 w-full z-50 bg-glass-plate-bg backdrop-blur-xl border-b border-white/5 specular-glow shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex justify-between items-center px-grid-margin h-16">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="terminal">terminal</span>
+<h1 class="font-display-lg text-primary tracking-tighter uppercase text-headline-md-mobile md:text-headline-md">MARKET RECON ENGINE</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-6 items-center">
+<span class="font-data-mono text-data-mono text-primary cursor-pointer hover:bg-white/5 transition-colors px-3 py-1 rounded">RECON</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant cursor-pointer hover:bg-white/5 transition-colors px-3 py-1 rounded">SIGNALS</span>
+<span class="font-data-mono text-data-mono text-primary bg-primary-container/10 border-b-2 border-primary px-3 py-1">TERMINAL</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant cursor-pointer hover:bg-white/5 transition-colors px-3 py-1 rounded">VAULT</span>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-white/5 transition-colors p-2 rounded-full active:scale-95 duration-200" data-icon="settings">settings</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative z-10 pt-16 pb-20 md:pb-0 h-screen w-full flex flex-col">
+<!-- Terminal Header / Status Bar -->
+<div class="flex items-center justify-between px-6 py-4 bg-abyssal-slate/80 backdrop-blur-md border-b border-white/5">
+<div class="flex items-center gap-4">
+<div class="px-2 py-1 bg-primary/10 border border-primary/20 rounded">
+<span class="font-data-mono text-data-mono text-primary tracking-widest">LIVE_LOGS</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-mesh-teal rounded-full syncing-dot"></span>
+<span class="font-data-mono text-data-mono text-mesh-teal/80 uppercase">Syncing</span>
+</div>
+</div>
+<!-- Terminal Controls -->
+<div class="flex items-center gap-1 bg-white/5 p-1 rounded-lg backdrop-blur-lg border border-white/10">
+<button class="p-2 hover:bg-white/10 rounded-md transition-all active:scale-90 flex items-center gap-2" title="Filter Logs">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="filter_list">filter_list</span>
+<span class="hidden sm:inline font-data-mono text-[10px] text-on-surface-variant">FILTER</span>
+</button>
+<div class="w-px h-4 bg-white/10 mx-1"></div>
+<button class="p-2 bg-primary/10 rounded-md transition-all active:scale-90 flex items-center gap-2" title="Toggle Auto-scroll">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="unfold_more_double">unfold_more_double</span>
+<span class="hidden sm:inline font-data-mono text-[10px] text-primary">AUTO_SCROLL</span>
+</button>
+<button class="p-2 hover:bg-bear-glow/20 rounded-md transition-all active:scale-90 flex items-center gap-2 group" id="clearBtn" title="Clear Console">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-error" data-icon="delete_sweep">delete_sweep</span>
+<span class="hidden sm:inline font-data-mono text-[10px] text-on-surface-variant group-hover:text-error">CLEAR</span>
+</button>
+</div>
+</div>
+<!-- Terminal Console -->
+<div class="flex-grow bg-void-obsidian relative overflow-hidden flex flex-col">
+<!-- Scanline overlay for aesthetic -->
+<div class="absolute inset-0 scanline opacity-30 z-20 pointer-events-none"></div>
+<!-- Logs Container -->
+<div class="flex-grow terminal-scroll overflow-y-auto px-6 py-6 font-data-mono text-[13px] space-y-1.5 z-10 selection:bg-primary-container/20" id="terminalBody">
+<!-- Initial content generated by JS for "real-time" feel -->
+</div>
+<!-- Terminal Footer / Prompt -->
+<div class="h-10 border-t border-white/5 bg-void-obsidian/80 px-6 flex items-center gap-3">
+<span class="text-primary opacity-50">$</span>
+<div class="w-2 h-4 bg-primary/40 animate-pulse"></div>
+<span class="text-on-surface-variant font-data-mono text-[10px] uppercase opacity-40">Listening for inbound market fragments...</span>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile Only - Shared Component Strategy) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-4 pb-safe bg-glass-plate-bg backdrop-blur-xl border-t border-white/5 specular-glow shadow-[0_-8px_32px_rgba(0,0,0,0.8)] z-50 rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all">
+<span class="material-symbols-outlined mb-1" data-icon="radar">radar</span>
+<span class="font-data-mono text-data-mono">RECON</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all">
+<span class="material-symbols-outlined mb-1" data-icon="insights">insights</span>
+<span class="font-data-mono text-data-mono">SIGNALS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary-fixed bg-primary-container/10 rounded-xl px-4 py-1 active:scale-90 duration-300">
+<span class="material-symbols-outlined mb-1" data-icon="code">code</span>
+<span class="font-data-mono text-data-mono">TERMINAL</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all">
+<span class="material-symbols-outlined mb-1" data-icon="database">database</span>
+<span class="font-data-mono text-data-mono">VAULT</span>
+</div>
+</nav>
+<script>
+        const terminalBody = document.getElementById('terminalBody');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        const sources = [
+            '[REDDIT_WORKER]',
+            '[X_SENTIMENT_API]',
+            '[CIRCUIT_BREAKER]',
+            '[DICTIONARY_LOAD]',
+            '[CORE_RECON]',
+            '[SCORING_ENGINE]',
+            '[DATABASE_SYNC]',
+            '[WEBSOCKET_CLIENT]'
+        ];
+
+        const messages = {
+            info: [
+                'Establishing connection to cluster alpha-01...',
+                'Parsing metadata stream from source shard 77.',
+                'Dictionary re-indexed. 452 new smoke tokens identified.',
+                'Telemetry heartbeat stable. 4.2ms latency.',
+                'Worker node 04 assigned to sub-task 882.'
+            ],
+            success: [
+                'Data packet successfully decrypted and routed.',
+                'Sentiment score calculated: 0.892 (BULLISH).',
+                'Successfully bridged connection to Reddit Flux.',
+                'System state synchronized with distributed ledger.',
+                'Pattern recognition complete. No anomalies detected.'
+            ],
+            warning: [
+                'Latency spike detected in Frankfurt node: 142ms.',
+                'Rate limit threshold approaching for X_SENTIMENT_API.',
+                'Low confidence score on keyword "squeeze" in sector Tech.',
+                'Resource allocation peaking at 88%. Scaling pending.',
+                'Retrying connection attempt 2/5 for secondary mirror.'
+            ],
+            error: [
+                'CRITICAL: Fragmented packet dropped in circuit breaker.',
+                'AUTHENTICATION_FAILED: Provider key revoked.',
+                'FATAL: Memory leak detected in worker thread 09.',
+                'DATA_CORRUPTION: Checksum mismatch on block 9921.',
+                'CONNECTION_REFUSED: Peer rejected handshake protocol.'
+            ]
+        };
+
+        function getTimestamp() {
+            const now = new Date();
+            return now.toISOString().replace('T', ' ').substring(0, 19);
+        }
+
+        function createLogLine() {
+            const typeProb = Math.random();
+            let type = 'info';
+            let colorClass = 'text-mesh-teal'; // mesh-gamma represented as teal here
+            
+            if (typeProb > 0.95) {
+                type = 'error';
+                colorClass = 'text-bear-glow';
+            } else if (typeProb > 0.85) {
+                type = 'warning';
+                colorClass = 'text-on-surface-variant'; // neutral-pulse
+            } else if (typeProb > 0.6) {
+                type = 'success';
+                colorClass = 'text-primary-fixed';
+            }
+
+            const timestamp = getTimestamp();
+            const source = sources[Math.floor(Math.random() * sources.length)];
+            const message = messages[type][Math.floor(Math.random() * messages[type].length)];
+
+            const div = document.createElement('div');
+            div.className = 'flex gap-3 leading-relaxed border-l-2 border-transparent hover:border-white/10 hover:bg-white/5 transition-all pl-2 py-0.5';
+            
+            div.innerHTML = `
+                <span class="text-on-surface-variant/30 shrink-0 select-none">${timestamp}</span>
+                <span class="text-mesh-cobalt font-bold shrink-0">${source}</span>
+                <span class="${colorClass} break-all">${message}</span>
+            `;
+
+            terminalBody.appendChild(div);
+            
+            // Auto-scroll
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+
+            // Cleanup old logs to prevent memory bloat
+            if (terminalBody.children.length > 100) {
+                terminalBody.removeChild(terminalBody.firstChild);
+            }
+        }
+
+        // Initialize with some lines
+        for(let i=0; i<15; i++) {
+            createLogLine();
+        }
+
+        // Generate logs continuously
+        setInterval(() => {
+            if (Math.random() > 0.4) {
+                createLogLine();
+            }
+        }, 800);
+
+        // Clear console functionality
+        clearBtn.addEventListener('click', () => {
+            terminalBody.innerHTML = '';
+            const resetMsg = document.createElement('div');
+            resetMsg.className = 'text-primary-fixed text-center py-4 border border-dashed border-primary/20 rounded';
+            resetMsg.innerHTML = '-- TERMINAL BUFFER CLEARED --';
+            terminalBody.appendChild(resetMsg);
+        });
+
+    </script>
+</body></html>

@@ -37,6 +37,10 @@ async def stream_activity(request: Request):
 def get_watchlist(
     days: int = Query(default=7, ge=1, le=30),
     min_mentions: int = Query(default=3, ge=1),
+    w_reddit_body: float = Query(default=0.45, ge=0.0, le=1.0),
+    w_reddit_nested: float = Query(default=0.20, ge=0.0, le=1.0),
+    w_twitter: float = Query(default=0.25, ge=0.0, le=1.0),
+    w_boards: float = Query(default=0.10, ge=0.0, le=1.0),
     db: Session = Depends(get_db),
 ):
     """
@@ -44,7 +48,13 @@ def get_watchlist(
     """
     try:
         return breakout.generate_watchlist_data(
-            db, days=days, min_mentions=min_mentions
+            db, 
+            days=days, 
+            min_mentions=min_mentions,
+            reddit_body_wt=w_reddit_body,
+            reddit_nested_wt=w_reddit_nested,
+            twitter_wt=w_twitter,
+            boards_wt=w_boards
         )
     except Exception as e:
         raise HTTPException(
@@ -72,13 +82,24 @@ def get_mentions(
 @router.get("/most-discussed", response_model=List[schemas.MostDiscussedEntry])
 def get_most_discussed(
     days: int = Query(default=7, ge=1, le=30),
+    w_reddit_body: float = Query(default=0.45, ge=0.0, le=1.0),
+    w_reddit_nested: float = Query(default=0.20, ge=0.0, le=1.0),
+    w_twitter: float = Query(default=0.25, ge=0.0, le=1.0),
+    w_boards: float = Query(default=0.10, ge=0.0, le=1.0),
     db: Session = Depends(get_db),
 ):
     """
     Exposes the most discussed stocks across all platforms (social + media) by mention volume.
     """
     try:
-        return breakout.generate_most_discussed_data(db, days=days)
+        return breakout.generate_most_discussed_data(
+            db, 
+            days=days,
+            reddit_body_wt=w_reddit_body,
+            reddit_nested_wt=w_reddit_nested,
+            twitter_wt=w_twitter,
+            boards_wt=w_boards
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to generate most discussed list: {e}"

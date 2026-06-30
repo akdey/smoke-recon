@@ -4,51 +4,64 @@
 
 @layer base {
   body {
-    font-family: 'Outfit', sans-serif;
-    background-color: #030712;
+    background-color: #030508;
+    color: #e0e2e8;
+    -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    min-height: max(884px, 100dvh);
   }
 }
 
 @layer utilities {
-  .liquid-glass {
-    backdrop-filter: blur(28px) saturate(220%);
-    background: rgba(8, 11, 20, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.7),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
-  }
-  
-  .liquid-glass-highlight {
-    backdrop-filter: blur(32px) saturate(240%);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 48px -8px rgba(0, 0, 0, 0.8),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
-  }
-  
-  .glass-card-selected {
-    backdrop-filter: blur(32px) saturate(245%);
-    background: rgba(59, 130, 246, 0.06);
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    box-shadow: 0 0 25px rgba(59, 130, 246, 0.18),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
+  .glass-card {
+    background: rgba(13, 20, 35, 0.45);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
   }
 
-  .glow-cyan {
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
-    border-color: rgba(6, 182, 212, 0.3);
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
   }
 
-  .glow-purple {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
-    border-color: rgba(168, 85, 247, 0.3);
+  .specular-highlight {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.03);
   }
 
-  .glow-emerald {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.3);
+  .sentiment-bull {
+    color: #00f2a1;
+    text-shadow: 0 0 10px rgba(0, 242, 161, 0.4);
   }
+
+  .sentiment-bear {
+    color: #ffb4ab;
+    text-shadow: 0 0 10px rgba(255, 180, 171, 0.4);
+  }
+
+  .mesh-gradient-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1;
+    background: radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(217, 70, 239, 0.1) 0%, transparent 40%);
+    animation: drift 30s infinite alternate linear;
+  }
+}
+
+@keyframes drift {
+  from { transform: scale(1); }
+  to { transform: scale(1.1) translate(20px, 10px); }
+}
+
+.sparkline-container svg {
+  filter: drop-shadow(0 0 4px currentColor);
 }
 
 /* Custom scrollbars */
@@ -70,14 +83,10 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* Radar rotation animation */
+/* Radar rotation animation (kept from previous UI) */
 @keyframes radar-sweep {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-radar {

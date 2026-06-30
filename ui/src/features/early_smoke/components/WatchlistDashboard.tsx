@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
-  TrendingUp, BarChart3, Terminal, Settings, RefreshCw, AlertCircle, 
-  Flame, Database, Cpu, X, HelpCircle, SlidersHorizontal, Bell, BellOff,
-  Gauge, Volume2, Sparkles, Activity
+  Terminal, Settings, RefreshCw, AlertCircle, 
+  Flame, Bell, BellOff, Rocket, CheckCircle2, ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { useSystemStatus } from '../hooks/useSystemStatus';
 import { useActivityStream } from '../hooks/useActivityStream';
@@ -16,8 +14,15 @@ import MentionChart from './MentionChart';
 export default function WatchlistDashboard() {
   const [days, setDays] = useState<number>(7);
   const [minMentions, setMinMentions] = useState<number>(3);
+  
+  // Matrix configurations (0-100 for sliders, converted to 0.0-1.0 for API)
+  const [wRedditBody, setWRedditBody] = useState<number>(45);
+  const [wRedditNested, setWRedditNested] = useState<number>(20);
+  const [wTwitter, setWTwitter] = useState<number>(25);
+  const [wBoards, setWBoards] = useState<number>(10);
+
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'watchlist' | 'activity'>('watchlist');
+  const [activeTab, setActiveTab] = useState<'home' | 'explore' | 'streams' | 'profile'>('home');
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [activeView, setActiveView] = useState<'breakouts' | 'mostDiscussed'>('breakouts');
   const [notifPermission, setNotifPermission] = useState<string>(
@@ -41,10 +46,7 @@ export default function WatchlistDashboard() {
   const handleInstallClick = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the PWA install prompt');
-        }
+      deferredPrompt.userChoice.then(() => {
         setDeferredPrompt(null);
         setShowInstallBtn(false);
       });
@@ -59,9 +61,15 @@ export default function WatchlistDashboard() {
     }
   };
 
-  // Load API hooks
-  const { data, loading, error } = useWatchlist(days, minMentions);
-  const { data: mostDiscussedData, loading: mostDiscussedLoading, error: mostDiscussedError } = useMostDiscussed(days);
+  // Load API hooks with weight parameters
+  const { data, loading, error } = useWatchlist(
+    days, minMentions, 
+    wRedditBody/100, wRedditNested/100, wTwitter/100, wBoards/100
+  );
+  const { data: mostDiscussedData, loading: mostDiscussedLoading, error: mostDiscussedError } = useMostDiscussed(
+    days,
+    wRedditBody/100, wRedditNested/100, wTwitter/100, wBoards/100
+  );
   const { data: mentionsData, loading: mentionsLoading } = useMentions(selectedTicker, days);
   const status = useSystemStatus();
   const { activities, connected } = useActivityStream();
@@ -98,33 +106,12 @@ export default function WatchlistDashboard() {
     }
   }, [watchlistEntries, selectedTicker]);
 
-  // Handle ticker selection
-  const handleSelectTicker = (ticker: string) => {
-    setSelectedTicker(ticker);
-  };
-
   const selectedData = watchlistEntries.find(w => w.ticker === selectedTicker) || null;
   const mentionsTimestamps = mentionsData?.map(m => m.timestamp).sort() || [];
 
   const dbConnected = status?.database?.status === 'connected';
-  const isDegraded = status?.status === 'degraded';
 
-  // Calculate macroeconomic statistics for top horizontal panel
-  const totalSpeculativeSignals = useMemo(() => {
-    return watchlistEntries.reduce((sum, item) => sum + (item.social_mentions || 0), 0);
-  }, [watchlistEntries]);
-
-  const overallMarketSentiment = useMemo(() => {
-    if (!watchlistEntries || watchlistEntries.length === 0) return 0;
-    const sum = watchlistEntries.reduce((acc, item) => acc + (item.average_sentiment || 0), 0);
-    return roundToTwo(sum / watchlistEntries.length);
-  }, [watchlistEntries]);
-
-  function roundToTwo(num: number) {
-    return Math.round((num + Number.EPSILON) * 100) / 100;
-  }
-
-  // Local Push Notification Trigger for speculative alerts
+  // Push Notifications
   useEffect(() => {
     if (activities.length > 0 && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       const lastAct = activities[activities.length - 1];
@@ -139,870 +126,407 @@ export default function WatchlistDashboard() {
     }
   }, [activities]);
 
+  const logsEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (activeTab === 'streams') {
+      logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activities, activeTab]);
+
   return (
-    <div className="flex-grow flex flex-row h-full min-h-screen bg-[#040508] text-slate-100 relative overflow-hidden font-sans">
-      {/* Subtle single background glow to keep UI focused */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-600/[0.03] blur-[150px]" />
-      </div>
+    <div className="font-body-base text-body-base min-h-screen relative overflow-hidden">
+      <div className="mesh-gradient-bg"></div>
 
-      {/* ==================== DESKTOP COLUMN 1: DIAGNOSTICS & SYSTEM SIDEBAR ==================== */}
-      <aside className="hidden lg:flex flex-col w-[260px] border-r border-white/[0.04] bg-[#07090f]/35 backdrop-blur-xl relative z-20 p-5 select-none shrink-0 justify-between">
-        <div className="space-y-6">
-          {/* Logo Brand */}
-          <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.04]">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 via-sky-400 to-indigo-600 flex items-center justify-center">
-              <Flame className="h-5 w-5 text-white fill-white" />
-            </div>
-            <div>
-              <span className="text-xs font-black tracking-widest text-white uppercase block">
-                SMOKE RECON
-              </span>
-              <span className="text-[8px] text-slate-500 font-mono tracking-wider font-bold">SPECULATIVE CORE</span>
-            </div>
-          </div>
-
-          {/* Quick Controls Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono">
-              <span>Parameters</span>
-              <SlidersHorizontal className="h-3 w-3 text-slate-600" />
-            </div>
-
-            <div className="space-y-3 bg-[#0a0e17]/30 border border-white/[0.02] p-3 rounded-lg">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-slate-400">Sliding Window</span>
-                  <span className="text-blue-400 font-bold">{days} Days</span>
-                </div>
-                <input 
-                  type="range" min="1" max="30" value={days} 
-                  onChange={(e) => setDays(Number(e.target.value))}
-                  className="h-1 w-full bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-slate-400">Min Mentions</span>
-                  <span className="text-blue-400 font-bold">{minMentions} Posts</span>
-                </div>
-                <input 
-                  type="range" min="1" max="10" value={minMentions} 
-                  onChange={(e) => setMinMentions(Number(e.target.value))}
-                  className="h-1 w-full bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Core diagnostics */}
-          <div className="space-y-3">
-            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">
-              Core Status
-            </span>
-
-            {/* DB Health */}
-            <div className="p-2.5 rounded-lg bg-[#0a0e17]/20 border border-white/[0.02] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Database className="h-3.5 w-3.5 text-indigo-400" />
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold text-slate-200 block truncate">Database Link</span>
-                  <span className="text-[8px] text-slate-500 block font-mono">
-                    {status?.database?.size_bytes ? `${(status.database.size_bytes / 1024).toFixed(1)} KB` : '0 KB'}
-                  </span>
-                </div>
-              </div>
-              <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
-                dbConnected ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-900/30' : 'bg-red-950/20 text-red-400'
-              }`}>
-                {dbConnected ? 'Active' : 'Offline'}
-              </span>
-            </div>
-
-            {/* Scheduler Health */}
-            <div className="p-2.5 rounded-lg bg-[#0a0e17]/20 border border-white/[0.02] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Cpu className="h-3.5 w-3.5 text-blue-400" />
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold text-slate-200 block truncate">Job Scheduler</span>
-                  <span className="text-[8px] text-slate-500 block font-mono">
-                    Crawl loops: {status?.scheduler?.active_jobs?.length || 0}
-                  </span>
-                </div>
-              </div>
-              <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
-                status?.scheduler?.status === 'running' 
-                  ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-900/30' 
-                  : 'bg-slate-800 text-slate-500'
-              }`}>
-                {status?.scheduler?.status || 'Stopped'}
-              </span>
-            </div>
-
-            {/* Breaker States */}
-            <div className="p-2.5 rounded-lg bg-[#0a0e17]/20 border border-white/[0.02] space-y-1.5 font-mono text-[9px] text-slate-550">
-              <div className="flex items-center justify-between border-b border-white/[0.02] pb-1">
-                <span className="font-semibold text-slate-350">Twitter Breaker</span>
-                <span className={`text-[8px] font-extrabold px-1 py-0.2 rounded border uppercase ${
-                  isDegraded ? 'text-yellow-450 bg-yellow-500/10 border-yellow-500/20' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                }`}>
-                  {status?.circuit_breakers?.twitter?.state || 'CLOSED'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Failures:</span>
-                <span>{status?.circuit_breakers?.twitter?.failures || 0} / 3</span>
-              </div>
-            </div>
-          </div>
+      {/* Top Navigation Anchor */}
+      <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm flex justify-between items-center w-full px-gutter h-16">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-[24px]">sensors</span>
+          <span className="font-data-mono text-metadata-tiny tracking-widest text-primary font-bold">RECON_ENG</span>
         </div>
-
-        <div className="space-y-4 pt-4 border-t border-white/[0.04]">
-          {/* PWA CTA */}
-          {showInstallBtn && (
-            <button
-              onClick={handleInstallClick}
-              className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-[9px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Install Web App
-            </button>
-          )}
-
-          {/* User Alert Settings / Permissions */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-bold text-slate-500 tracking-wider font-mono">PUSH ALERTS</span>
-              <button
-                onClick={requestNotificationPermission}
-                className={`p-1 rounded-md transition-all active:scale-95 flex items-center justify-center ${
-                  notifPermission === 'granted'
-                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                    : 'bg-white/[0.03] border border-white/[0.05] text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                {notifPermission === 'granted' ? (
-                  <Bell className="h-3.5 w-3.5" />
-                ) : (
-                  <BellOff className="h-3.5 w-3.5" />
-                )}
-              </button>
-            </div>
-            <span className="text-[8px] text-slate-550 block leading-normal font-mono">
-              {notifPermission === 'granted' 
-                ? 'Real-time phone alerts active.'
-                : 'Enable alerts to push updates to phone.'}
-            </span>
-          </div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={requestNotificationPermission}
+            className={`material-symbols-outlined text-[20px] cursor-pointer transition-colors ${notifPermission === 'granted' ? 'text-primary' : 'text-on-surface-variant'}`}
+          >
+            {notifPermission === 'granted' ? 'notifications_active' : 'notifications'}
+          </button>
+          <button onClick={() => setIsSettingsOpen(true)} className="w-8 h-8 rounded-full border border-primary-container/20 bg-surface-container-high overflow-hidden flex items-center justify-center text-on-surface hover:bg-surface-variant transition-colors">
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
-      </aside>
+      </header>
 
-      {/* ==================== DESKTOP COLUMN 2 & 3 CONTAINER ==================== */}
-      <div className="flex-grow flex flex-col min-w-0 h-full overflow-hidden relative z-10">
+      {/* Main Content Area */}
+      <main className={`px-gutter pb-32 transition-all ${isSettingsOpen ? 'opacity-30 pointer-events-none blur-sm' : ''}`}>
         
-        {/* ==================== ULTRA-CLEAN MOBILE HEADER ==================== */}
-        <header className="bg-[#040508] border-b border-white/[0.04] px-6 py-4 flex items-center justify-between sticky top-0 z-30 select-none">
-          <div className="flex items-center gap-2">
-            <Flame className="h-4.5 w-4.5 text-blue-500 fill-blue-500" />
-            <span className="text-xs font-black tracking-widest text-white uppercase">
-              SMOKE RECON
-            </span>
-            {/* Tiny unified status dot */}
-            <span className={`h-1.5 w-1.5 rounded-full ml-1 ${connected ? 'bg-emerald-500 animate-pulse shadow-[0_0_6px_#10b981]' : 'bg-amber-500'}`}></span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Settings trigger is the ONLY option in mobile header */}
-            <button 
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-1 rounded text-slate-400 hover:text-white transition-colors"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
-          </div>
-        </header>
-
-        {/* ==================== MACRO TELEMETRY STATS BARS ==================== */}
-        <section className="px-6 pt-5 grid grid-cols-2 md:grid-cols-4 gap-4 select-none">
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
-            <div className="min-w-0">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">SPECULATIVE VOLUME</span>
-              <span className="text-xl font-extrabold text-white mt-1 block leading-none font-mono">{totalSpeculativeSignals} posts</span>
-            </div>
-            <div className="h-8 w-8 rounded-lg bg-blue-500/5 border border-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
-              <Volume2 className="h-4.5 w-4.5" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
-            <div className="min-w-0">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">ACTIVE IN-FOCUS</span>
-              <span className="text-xl font-extrabold text-white mt-1 block leading-none font-mono">{watchlistEntries.length} tickers</span>
-            </div>
-            <div className="h-8 w-8 rounded-lg bg-sky-500/5 border border-sky-500/10 flex items-center justify-center text-sky-400 shrink-0">
-              <Flame className="h-4.5 w-4.5" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
-            <div className="min-w-0">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">STREAM INTENSITY</span>
-              <span className="text-xl font-extrabold text-white mt-1 block leading-none font-mono">
-                {activities.filter(a => (Date.now() - new Date(a.timestamp).getTime()) < 60000).length} / min
-              </span>
-            </div>
-            <div className="h-8 w-8 rounded-lg bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
-              <Gauge className="h-4.5 w-4.5" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
-            <div className="min-w-0">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">NET SENTIMENT</span>
-              <span className={`text-xl font-extrabold mt-1 block leading-none font-mono ${
-                overallMarketSentiment > 0.15 ? 'text-emerald-400 animate-pulse' : overallMarketSentiment < -0.15 ? 'text-rose-400' : 'text-slate-300'
-              }`}>
-                {overallMarketSentiment > 0 ? `+${overallMarketSentiment.toFixed(2)}` : overallMarketSentiment.toFixed(2)}
-              </span>
-            </div>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
-              <Sparkles className="h-4.5 w-4.5" />
-            </div>
-          </div>
-        </section>
-
-        {/* 📱 MOBILE VIEW TABS SELECTOR (Only visible below LG screens) */}
-        <section className="lg:hidden px-6 pt-4 select-none">
-          <div className="grid grid-cols-2 bg-[#0a0e16] border border-white/[0.04] rounded-xl p-1 text-xs">
-            <button
-              onClick={() => {
-                setActiveTab('watchlist');
-              }}
-              className={`py-2 rounded-lg font-bold uppercase tracking-wider transition-all ${
-                activeTab === 'watchlist' ? 'bg-blue-600/20 border border-blue-500/20 text-white' : 'text-slate-400'
-              }`}
-            >
-              Watchlist
-            </button>
-            <button
-              onClick={() => setActiveTab('activity')}
-              className={`py-2 rounded-lg font-bold uppercase tracking-wider transition-all ${
-                activeTab === 'activity' ? 'bg-blue-600/20 border border-blue-500/20 text-white' : 'text-slate-400'
-              }`}
-            >
-              Live Logs
-            </button>
-          </div>
-        </section>
-
-        {/* ==================== DESKTOP DUAL VIEW AND MOBILE ANCHOR CONTAINER ==================== */}
-        <div className="flex-1 px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 overflow-hidden h-full">
-
-          {/* DESKTOP COLUMN 1: SPECULATIVE EXPLORER BOARD / MOBILE DRILL DOWN */}
-          <section className={`lg:col-span-5 flex flex-col gap-4 overflow-hidden h-full ${activeTab === 'watchlist' ? 'flex' : 'hidden lg:flex'}`}>
-            
-            {/* Mobile List-Detail Drill-down Layout */}
-            <div className="lg:hidden flex-grow flex flex-col overflow-hidden h-full">
-              {selectedTicker && selectedData ? (
-                /* Mobile Detailed Stock Drill Down view */
-                <div className="flex-grow flex flex-col gap-4 overflow-y-auto pb-12 pr-1">
-                  <button 
-                    onClick={() => setSelectedTicker(null)} 
-                    className="flex items-center gap-1.5 text-xs text-blue-400 font-mono font-bold uppercase tracking-wider mb-2 self-start active:scale-95 transition-transform"
-                  >
-                    ← Back to List
-                  </button>
-
-                  {/* Stock Meta details Card */}
-                  <div className="bg-[#0c101b]/30 border border-white/[0.04] rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-2xl font-black text-white">{selectedData.ticker}</h2>
-                          <span className={`text-[8px] font-extrabold px-1.5 py-0.2 rounded border uppercase tracking-wider font-mono shrink-0 ${
-                            selectedData.average_sentiment > 0.15 
-                              ? 'text-emerald-450 bg-emerald-500/10 border-emerald-500/20' 
-                              : selectedData.average_sentiment < -0.15 
-                                ? 'text-rose-455 bg-rose-500/10 border-rose-500/20' 
-                                : 'text-slate-400 bg-slate-500/10 border-slate-500/20'
-                          }`}>
-                            {selectedData.average_sentiment > 0.15 ? 'Bullish' : selectedData.average_sentiment < -0.15 ? 'Bearish' : 'Neutral'}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-mono uppercase mt-0.5 block">{selectedData.company_name}</span>
-                      </div>
-                      <div className="text-right font-mono">
-                        <span className="text-[9px] text-slate-550 uppercase tracking-widest block font-bold">Alpha Score</span>
-                        <span className="text-xl font-black text-blue-400">{selectedData.breakout_alpha_score.toFixed(1)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chart section */}
-                  <div className="bg-[#0c101b]/30 border border-white/[0.04] rounded-xl p-4 h-[240px] shrink-0">
-                    <MentionChart 
-                      timestamps={mentionsTimestamps.length > 0 ? mentionsTimestamps : (selectedData?.timestamp_vectors || [])} 
-                      ticker={selectedData?.ticker || ''} 
-                      sentiment={selectedData.average_sentiment}
-                    />
-                  </div>
-
-                  {/* Comments feed */}
-                  <div className="flex-1 flex flex-col gap-2.5 min-h-[180px]">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">
-                      Recent Chatter Feed ({mentionsData ? mentionsData.length : 0})
-                    </h3>
-                    <div className="space-y-2 font-mono text-[10px]">
-                      {mentionsLoading ? (
-                        <div className="flex items-center justify-center p-4">
-                          <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />
-                        </div>
-                      ) : !mentionsData || mentionsData.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500 bg-white/[0.01] border border-white/[0.03] rounded-xl italic">
-                          No recent comment details found in database.
-                        </div>
-                      ) : (
-                        mentionsData.map((mention, index) => (
-                          <div 
-                            key={mention.id || index} 
-                            className={`p-3 bg-[#080a10]/55 border rounded-xl flex flex-col gap-1.5 relative overflow-hidden ${
-                              mention.sentiment > 0.15 
-                                ? 'border-emerald-500/10' 
-                                : mention.sentiment < -0.15 
-                                  ? 'border-rose-500/10' 
-                                  : 'border-white/[0.03]'
-                            }`}
-                          >
-                            <div className={`absolute left-0 top-0 bottom-0 w-0.5 ${
-                              mention.sentiment > 0.15 ? 'bg-emerald-500' : mention.sentiment < -0.15 ? 'bg-rose-500' : 'bg-slate-700'
-                            }`} />
-                            <div className="flex items-center justify-between text-gray-500 text-[9px] pl-1 font-bold">
-                              <span>{new Date(mention.timestamp).toLocaleTimeString()}</span>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[8px] font-extrabold px-1 rounded uppercase border font-mono ${
-                                  mention.sentiment > 0.15 
-                                    ? 'text-emerald-450 bg-emerald-500/5 border-emerald-500/10' 
-                                    : mention.sentiment < -0.15 
-                                      ? 'text-rose-455 bg-rose-500/5 border-rose-500/10' 
-                                      : 'text-slate-405 bg-slate-500/5 border-slate-500/10'
-                                }`}>
-                                  {mention.sentiment > 0.15 ? 'Bull' : mention.sentiment < -0.15 ? 'Bear' : 'Neut'} ({mention.sentiment > 0 ? `+${mention.sentiment.toFixed(1)}` : mention.sentiment.toFixed(1)})
-                                </span>
-                                <span className="text-orange-400 font-semibold">{mention.platform}</span>
-                                {mention.url && (
-                                  <a href={mention.url} target="_blank" rel="noopener noreferrer" className="text-blue-450 hover:underline">[Source]</a>
-                                )}
-                              </div>
-                            </div>
-                            <p className="text-slate-300 pl-1 leading-normal">"{mention.content_body}"</p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Score Explanation footer */}
-                  <div className="p-3 bg-blue-950/15 border border-blue-900/30 rounded-xl text-[9px] text-slate-450 leading-normal flex items-start gap-2 select-none mt-2">
-                    <HelpCircle className="h-4.5 w-4.5 text-blue-400 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-350 block mb-0.5">SPECULATIVE BREAKOUT SCORING</strong>
-                      The <strong>Alpha Score</strong> represents cumulative retail discussion density weighted by sentiment. Bullish mentions increase the score, bearish mentions decrease it, and mainstream news articles are subtracted (Set Difference) to reveal stealth trends before they go public.
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* Mobile Cards List View */
-                <div className="flex-grow flex flex-col gap-3 h-full">
-                  <div className="grid grid-cols-2 p-1 bg-[#090b11] border border-white/[0.04] rounded-xl text-[10px] select-none font-mono">
-                    <button
-                      onClick={() => setActiveView('breakouts')}
-                      className={`py-2 rounded-lg font-bold uppercase tracking-widest transition-all ${
-                        activeView === 'breakouts'
-                          ? 'bg-blue-600/20 border border-blue-500/20 text-blue-400 shadow-md'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      Breakouts
-                    </button>
-                    <button
-                      onClick={() => setActiveView('mostDiscussed')}
-                      className={`py-2 rounded-lg font-bold uppercase tracking-widest transition-all ${
-                        activeView === 'mostDiscussed'
-                          ? 'bg-blue-600/20 border border-blue-500/20 text-blue-400 shadow-md'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      Most Discussed
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-1">
-                    <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">
-                      {activeView === 'breakouts' ? 'Speculative Breakouts' : 'Most Discussed'} ({watchlistEntries.length})
-                    </h2>
-                    {listLoading && <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />}
-                  </div>
-
-                  {/* Clean Financial Table Layout */}
-                  <div className="flex-grow flex flex-col bg-[#07090f]/35 border border-white/[0.03] rounded-xl overflow-hidden mt-1 pb-16">
-                    {/* Table Header Row */}
-                    <div className="px-4 py-2 bg-[#090b12] border-b border-white/[0.03] flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono select-none">
-                      <span>Ticker / Corporate</span>
-                      <div className="flex items-center gap-6">
-                        <span className="w-12 text-center">Sentiment</span>
-                        <span className="w-12 text-right">Score</span>
-                      </div>
-                    </div>
-
-                    <div className="overflow-y-auto divide-y divide-white/[0.02]">
-                      {watchlistEntries.map((item) => (
-                        <BreakoutCard 
-                          key={item.ticker}
-                          data={item}
-                          isSelected={selectedTicker === item.ticker}
-                          onSelect={handleSelectTicker}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Desktop-Only list explorer elements */}
-            <div className="hidden lg:flex flex-col gap-4 overflow-hidden h-full w-full">
-              {/* Heading and Filters toggle */}
-              <div className="flex items-center justify-between select-none">
-                {/* Premium Slide tab switcher */}
-                <div className="flex items-center bg-[#090b11] border border-white/[0.04] p-0.5 rounded-lg text-[10px]">
-                  <button
-                    onClick={() => setActiveView('breakouts')}
-                    className={`px-3 py-1 rounded font-bold uppercase tracking-widest font-mono transition-all ${
-                      activeView === 'breakouts'
-                        ? 'bg-blue-600/20 border border-blue-500/20 text-blue-400'
-                        : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    Breakouts
-                  </button>
-                  <button
-                    onClick={() => setActiveView('mostDiscussed')}
-                    className={`px-3 py-1 rounded font-bold uppercase tracking-widest font-mono transition-all ${
-                      activeView === 'mostDiscussed'
-                        ? 'bg-blue-600/20 border border-blue-500/20 text-blue-400'
-                        : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    Most Discussed
-                  </button>
-                </div>
-              </div>
-
-              {/* Error notifications */}
-              {listError && (
-                <div className="p-4 bg-red-950/20 border border-red-900/30 rounded-xl flex items-center gap-3 text-red-300 text-xs">
-                  <AlertCircle className="h-4.5 w-4.5 text-red-500 shrink-0" />
-                  <span>Synchronisation error: {listError}</span>
-                </div>
-              )}
-
-              {/* Clean Desktop Watchlist Table */}
-              <div className="flex-1 flex flex-col bg-[#07090f]/35 border border-white/[0.03] rounded-xl overflow-hidden">
-                {/* Table Header */}
-                <div className="px-4 py-2.5 bg-[#090b12] border-b border-white/[0.03] flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono select-none">
-                  <span>Ticker / Corporate</span>
-                  <div className="flex items-center gap-7">
-                    <span className="w-12 text-center">Sentiment</span>
-                    <span className="w-12 text-right">Score</span>
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto divide-y divide-white/[0.015]">
-                  {listLoading ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs gap-3 select-none">
-                      <RefreshCw className="h-5 w-5 text-blue-400 animate-spin" />
-                      <span>Telemetry syncing...</span>
-                    </div>
-                  ) : !listLoading && watchlistEntries.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
-                      <AlertCircle className="h-8 w-8 text-slate-700 mb-2" />
-                      <span className="font-bold text-slate-400 text-xs">Feed Empty</span>
-                    </div>
-                  ) : (
-                    watchlistEntries.map((item) => (
-                      <BreakoutCard 
-                        key={item.ticker}
-                        data={item}
-                        isSelected={selectedTicker === item.ticker}
-                        onSelect={handleSelectTicker}
-                      />
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* DESKTOP COLUMN 2: ANALYTICS TERMINAL (LG span 7, hidden on mobile since mobile uses drill-down) */}
-          <section className="hidden lg:flex lg:col-span-7 flex-col gap-4 overflow-hidden h-full">
-            <div className="flex-grow bg-[#07090f]/20 border border-white/[0.04] p-5 flex flex-col overflow-hidden h-full rounded-2xl relative shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
-              
-              {selectedData ? (
-                <div className="flex-grow flex flex-col gap-5 overflow-hidden h-full">
-                  
-                  {/* Detailed Stock Header */}
-                  <div className="flex items-center justify-between border-b border-white/[0.04] pb-4 select-none">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-3xl font-black text-white leading-none tracking-tight">{selectedData.ticker}</h2>
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border uppercase tracking-wider font-mono shrink-0 ${
-                          selectedData.average_sentiment > 0.15 
-                            ? 'text-emerald-450 bg-emerald-500/10 border-emerald-500/20' 
-                            : selectedData.average_sentiment < -0.15 
-                              ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' 
-                              : 'text-slate-400 bg-slate-500/10 border-slate-500/20'
-                        }`}>
-                          {selectedData.average_sentiment > 0.15 ? 'Bullish' : selectedData.average_sentiment < -0.15 ? 'Bearish' : 'Neutral'}
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-400 mt-1 block font-mono uppercase tracking-wider">{selectedData.company_name}</span>
-                    </div>
-
-                    <div className="bg-blue-600/5 border border-blue-500/20 px-3.5 py-2 rounded-xl text-right">
-                      <span className="text-[9px] text-slate-400 uppercase tracking-widest font-mono font-bold block">Alpha Score</span>
-                      <span className="text-2xl font-black text-blue-400 leading-none block mt-0.5">{selectedData.breakout_alpha_score.toFixed(1)}</span>
-                    </div>
-                  </div>
-
-                  {/* Chart section */}
-                  <div className="h-[210px] w-full shrink-0">
-                    <MentionChart 
-                      timestamps={mentionsTimestamps.length > 0 ? mentionsTimestamps : (selectedData?.timestamp_vectors || [])} 
-                      ticker={selectedData?.ticker || ''} 
-                      sentiment={selectedData.average_sentiment}
-                    />
-                  </div>
-
-                  {/* Targeted Comments ledger stream */}
-                  <div className="flex-grow flex flex-col gap-2.5 overflow-hidden min-h-[160px]">
-                    <div className="border-t border-white/[0.04] pt-3 flex items-center justify-between select-none">
-                      <h4 className="text-[10px] font-bold text-slate-450 uppercase tracking-widest font-mono">
-                        Targeted Speculative Comments Feed
-                      </h4>
-                      <span className="text-[9px] px-2 py-0.5 rounded-md bg-white/[0.03] text-slate-450 border border-white/[0.05] font-mono">
-                        {mentionsData ? mentionsData.length : 0} elements recorded
-                      </span>
-                    </div>
-                    
-                    <div className="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-[10px] pb-4">
-                      {mentionsLoading ? (
-                        <div className="flex items-center justify-center p-8">
-                          <RefreshCw className="h-4.5 w-4.5 text-blue-400 animate-spin" />
-                        </div>
-                      ) : !mentionsData || mentionsData.length === 0 ? (
-                        <div className="p-6 text-center text-gray-500 bg-white/[0.01] border border-dashed border-white/[0.03] rounded-xl italic select-none">
-                          No matching text mentions found in the current time-slice database.
-                        </div>
-                      ) : (
-                        mentionsData.map((mention, index) => (
-                          <div 
-                            key={mention.id || index} 
-                            className={`p-3 bg-[#080a10]/45 border rounded-xl flex flex-col gap-1.5 relative overflow-hidden transition-all duration-300 hover:border-white/[0.1] ${
-                              mention.sentiment > 0.15 
-                                ? 'border-emerald-500/10' 
-                                : mention.sentiment < -0.15 
-                                  ? 'border-rose-500/10' 
-                                  : 'border-white/[0.03]'
-                            }`}
-                          >
-                            {/* Accent Vertical Sentiment Indicator bar */}
-                            <div className={`absolute left-0 top-0 bottom-0 w-0.5 ${
-                              mention.sentiment > 0.15 
-                                ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' 
-                                : mention.sentiment < -0.15 
-                                  ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' 
-                                  : 'bg-slate-750'
-                            }`} />
-
-                            <div className="flex items-center justify-between text-gray-550 text-[9px] pl-1 font-bold select-none">
-                              <span className="text-gray-400">{new Date(mention.timestamp).toLocaleString()}</span>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[8px] font-extrabold px-1 rounded uppercase border font-mono ${
-                                  mention.sentiment > 0.15 
-                                    ? 'text-emerald-450 bg-emerald-500/5 border-emerald-500/10' 
-                                    : mention.sentiment < -0.15 
-                                      ? 'text-rose-455 bg-rose-500/5 border-rose-500/10' 
-                                      : 'text-slate-405 bg-slate-500/5 border-slate-500/10'
-                                }`}>
-                                  {mention.sentiment > 0.15 ? 'Bull' : mention.sentiment < -0.15 ? 'Bear' : 'Neut'} ({mention.sentiment > 0 ? `+${mention.sentiment.toFixed(1)}` : mention.sentiment.toFixed(1)})
-                                </span>
-                                <span className="text-blue-400 uppercase tracking-widest text-[8px] bg-blue-500/5 px-1 py-0.2 rounded border border-blue-500/10">
-                                  {mention.platform}
-                                </span>
-                                {mention.url && (
-                                  <a 
-                                    href={mention.url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-blue-450 hover:text-blue-300 font-bold hover:underline transition-all"
-                                  >
-                                    [Source]
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                            <p className="text-slate-300 leading-relaxed pl-1">"{mention.content_body}"</p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Explanatory telemetry footer */}
-                  <div className="p-3 bg-blue-950/15 border border-blue-900/30 rounded-xl text-[9px] text-slate-450 leading-normal flex items-start gap-2 select-none shadow-[inset_0_1px_0_0_rgba(255,255,255,0.01)]">
-                    <HelpCircle className="h-4.5 w-4.5 text-blue-400 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-200 block mb-0.5">SPECULATIVE BREAKOUT SCORING METRICS</strong>
-                      The <strong>Alpha Score</strong> represents cumulative retail discussion density weighted by sentiment. Bullish mentions increase the score, bearish mentions decrease it, and mainstream news articles are subtracted (Set Difference) to reveal stealth trends before they go public.
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                // Rotating radar sweeping empty state
-                <div className="flex-grow flex flex-col items-center justify-center text-center p-8 select-none">
-                  <div className="relative h-28 w-28 mb-5 flex items-center justify-center">
-                    <div className="absolute top-4 left-6 h-1.5 w-1.5 rounded-full bg-emerald-450 animate-ping" />
-                    <div className="absolute bottom-6 right-3 h-1.5 w-1.5 rounded-full bg-blue-450 animate-ping" />
-                    <div className="absolute top-1/2 left-2/3 h-1.5 w-1.5 rounded-full bg-indigo-500 animate-ping" />
-
-                    <div className="absolute inset-0 rounded-full border border-blue-500/20 animate-radar" style={{ borderRightColor: '#60a5fa' }} />
-                    <div className="absolute inset-4 rounded-full border border-dashed border-white/[0.04]" />
-                    <div className="absolute inset-10 rounded-full border border-white/[0.03]" />
-                    
-                    <Terminal className="h-8 w-8 text-slate-700 animate-pulse" />
-                  </div>
-                  <span className="font-extrabold text-slate-400 uppercase tracking-widest text-[11px] font-mono">
-                    NO TARGET LOCK ENABLED
+        {/* VIEW: HOME (Watchlist) */}
+        {activeTab === 'home' && (
+          <>
+            {/* System Status Banner */}
+            <section className="mt-6">
+              <div className="glass-card px-4 py-3 flex justify-between items-center rounded-lg border-primary-container/10">
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-2 w-2">
+                    <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${dbConnected ? 'bg-primary animate-ping' : 'bg-error'}`}></span>
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${dbConnected ? 'bg-primary' : 'bg-error'}`}></span>
                   </span>
-                  <span className="text-[10px] text-slate-500 max-w-xs mt-1 leading-relaxed">
-                    Select an active speculative asset from the watchlist explorer to target telemetry.
+                  <span className={`font-data-mono text-data-mono uppercase tracking-tighter ${dbConnected ? 'text-primary' : 'text-error'}`}>
+                    System Health: {dbConnected ? 'Nominal' : 'Offline'}
                   </span>
                 </div>
-              )}
-            </div>
-          </section>
+                <div className="flex items-center gap-4">
+                  <span className="font-data-mono text-data-mono text-on-surface-variant">Jobs: {status?.scheduler?.active_jobs?.length || 0}</span>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant">terminal</span>
+                </div>
+              </div>
+            </section>
 
-          {/* SYSTEM CONSOLE STREAM (collapsible/visible when logs tab selected on mobile) */}
-          <section className={`lg:hidden flex flex-col gap-4 overflow-hidden h-full ${activeTab === 'activity' ? 'flex' : 'hidden'}`}>
-            <div className="flex-grow bg-[#07090f]/75 border border-white/[0.04] rounded-xl p-4 overflow-y-auto space-y-2.5 font-mono text-[10px]">
-              {activities.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-650 italic">
-                  Telemetry logs streaming pending...
+            {/* Page Hero */}
+            <section className="mt-8 mb-6">
+              <h1 className="font-display-lg text-[32px] font-bold leading-tight tracking-tight">Hype Breakout Watchlist</h1>
+              <p className="text-on-surface-variant mt-2 font-body-base leading-relaxed opacity-80">
+                <span className="text-primary font-bold">Set Difference Logic:</span> Surfacing tickers active in social streams but absent from traditional financial media outlets.
+              </p>
+            </section>
+
+            {/* Segmented Control Tabs */}
+            <nav className="flex gap-1 p-1 bg-void-obsidian/60 border border-outline-variant/20 rounded-xl mb-8">
+              <button 
+                onClick={() => setActiveView('breakouts')}
+                className={`flex-1 py-3 text-center rounded-lg font-headline-md text-[14px] transition-all ${activeView === 'breakouts' ? 'bg-primary-container/10 text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
+                Hype Breakouts
+              </button>
+              <button 
+                onClick={() => setActiveView('mostDiscussed')}
+                className={`flex-1 py-3 text-center rounded-lg font-headline-md text-[14px] transition-all ${activeView === 'mostDiscussed' ? 'bg-primary-container/10 text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
+                Most Discussed
+              </button>
+            </nav>
+
+            {/* Error Handling */}
+            {listError && (
+              <div className="mb-4 p-4 glass-card border-error/20 rounded-lg flex items-center gap-3 text-error text-sm">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <span>Sync error: {listError}</span>
+              </div>
+            )}
+
+            {/* Breakout Cards List */}
+            <div className="space-y-4">
+              {listLoading ? (
+                <div className="py-12 flex justify-center">
+                  <RefreshCw className="h-6 w-6 text-primary animate-spin" />
+                </div>
+              ) : watchlistEntries.length === 0 ? (
+                <div className="py-12 text-center text-on-surface-variant">
+                  <AlertCircle className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                  <p>No anomalous activity detected.</p>
                 </div>
               ) : (
-                activities.map((event, index) => (
-                  <div key={index} className="flex flex-col gap-1 border-b border-white/[0.02] pb-2">
-                    <div className="flex items-center justify-between text-slate-550 text-[9px]">
-                      <span>[{new Date(event.timestamp).toLocaleTimeString()}]</span>
-                      <span className="text-orange-400 font-bold uppercase">{event.event_type}</span>
-                    </div>
-                    <span className="text-slate-350">{event.message}</span>
-                  </div>
+                watchlistEntries.map(item => (
+                  <BreakoutCard 
+                    key={item.ticker}
+                    data={item}
+                    isSelected={selectedTicker === item.ticker}
+                    onSelect={(t) => {
+                      setSelectedTicker(t);
+                      setActiveTab('explore');
+                    }}
+                  />
                 ))
               )}
             </div>
-          </section>
-
-        </div>
-      </div>
-
-      {/* ==================== GLOBAL CONFIG & HEALTH DIAGNOSTICS MODAL ==================== */}
-      <AnimatePresence>
-        {isSettingsOpen && (
-          <>
-            {/* Backdrop Blur layer */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsSettingsOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-md z-40"
-            />
-            {/* Drawer sheet */}
-            <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-              className="fixed inset-y-0 right-0 max-w-sm w-full bg-[#090b11] border-l border-white/[0.06] p-6 z-50 shadow-2xl flex flex-col justify-between"
-            >
-              <div className="space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/[0.05] pb-4 select-none">
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-4 w-4 text-blue-400" />
-                    <h3 className="text-xs font-bold text-slate-200 uppercase tracking-widest font-mono">
-                      Diagnostics Terminal
-                    </h3>
-                  </div>
-                  <button 
-                    onClick={() => setIsSettingsOpen(false)}
-                    className="text-slate-400 hover:text-white transition-colors p-1"
-                  >
-                    <X className="h-4.5 w-4.5" />
-                  </button>
-                </div>
-
-                {/* Parameters sliders for Mobile */}
-                <div className="space-y-4 lg:hidden">
-                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
-                    Scrape Scoping
-                  </h4>
-                  
-                  <div className="space-y-3 bg-[#0c101a] p-4 rounded-xl border border-white/[0.03]">
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-300">Days Range</span>
-                        <span className="text-blue-400 font-mono font-bold">{days}d</span>
-                      </div>
-                      <input 
-                        type="range" min="1" max="30" value={days} 
-                        onChange={(e) => setDays(Number(e.target.value))}
-                        className="h-1 w-full bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-300">Min Mentions</span>
-                        <span className="text-blue-400 font-mono font-bold">{minMentions}</span>
-                      </div>
-                      <input 
-                        type="range" min="1" max="10" value={minMentions} 
-                        onChange={(e) => setMinMentions(Number(e.target.value))}
-                        className="h-1 w-full bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* PWA CTA inside Drawer */}
-                {showInstallBtn && (
-                  <div className="space-y-2.5">
-                    <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
-                      Application Installation
-                    </h4>
-                    <button
-                      onClick={handleInstallClick}
-                      className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[9px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Install to Home Screen
-                    </button>
-                  </div>
-                )}
-
-                {/* Push Notification Toggle inside Drawer */}
-                <div className="space-y-2.5">
-                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
-                    Notification Permissions
-                  </h4>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-[#0c101a] border border-white/[0.03]">
-                    <span className="text-xs font-semibold text-slate-200">Phone Push Alerts</span>
-                    <button
-                      onClick={requestNotificationPermission}
-                      className={`px-3 py-1 rounded-md text-[10px] font-bold font-mono transition-all active:scale-95 uppercase ${
-                        notifPermission === 'granted'
-                          ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-900/30'
-                          : 'bg-white/[0.04] text-slate-400 border border-white/[0.05]'
-                      }`}
-                    >
-                      {notifPermission === 'granted' ? 'Enabled' : 'Request'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* System Diagnostics Metrics */}
-                <div className="space-y-4">
-                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
-                    Node Health statuses
-                  </h4>
-
-                  {/* Database status */}
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-[#0c101a] border border-white/[0.03]">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-4 w-4 text-indigo-400" />
-                      <div>
-                        <span className="text-xs font-semibold text-slate-200 block">SQLite Database</span>
-                        <span className="text-[9px] text-slate-450 block font-mono mt-0.5">
-                          Size: {status?.database?.size_bytes ? `${(status.database.size_bytes / 1024).toFixed(1)} KB` : '0 KB'}
-                        </span>
-                      </div>
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                      dbConnected ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-900/30' : 'bg-red-950/20 text-red-400'
-                    }`}>
-                      {dbConnected ? 'Active' : 'Offline'}
-                    </span>
-                  </div>
-
-                  {/* Scheduler Status */}
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-[#0c101a] border border-white/[0.03]">
-                    <div className="flex items-center gap-2">
-                      <Cpu className="h-4 w-4 text-blue-400" />
-                      <div>
-                        <span className="text-xs font-semibold text-slate-200 block">Task Scheduler</span>
-                        <span className="text-[9px] text-slate-450 block font-mono mt-0.5">
-                          Active jobs: {status?.scheduler?.active_jobs?.length || 0}
-                        </span>
-                      </div>
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                      status?.scheduler?.status === 'running' 
-                        ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-900/30' 
-                        : 'bg-slate-800 text-slate-500'
-                    }`}>
-                      {status?.scheduler?.status || 'Stopped'}
-                    </span>
-                  </div>
-
-                  {/* Circuit Breaker Status */}
-                  <div className="p-3 rounded-lg bg-[#0c101a] border border-white/[0.03] space-y-2">
-                    <div className="flex items-center justify-between border-b border-white/[0.02] pb-2 font-mono text-xs">
-                      <span className="text-slate-200">Twitter Breaker</span>
-                      <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                        isDegraded ? 'bg-yellow-950/20 text-yellow-400 border border-yellow-900/30' : 'bg-emerald-950/20 text-emerald-400'
-                      }`}>
-                        {status?.circuit_breakers?.twitter?.state || 'CLOSED'}
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 space-y-1 font-mono">
-                      <div className="flex justify-between">
-                        <span>Consecutive Failures:</span>
-                        <span>{status?.circuit_breakers?.twitter?.failures || 0} / 3</span>
-                      </div>
-                      {isDegraded && status?.circuit_breakers?.twitter?.retry_at && (
-                        <div className="flex justify-between text-yellow-400 font-medium">
-                          <span>Retry Cooldown:</span>
-                          <span>
-                            {Math.max(1, Math.round((new Date(status.circuit_breakers.twitter.retry_at).getTime() - Date.now()) / 60000))} min
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer info */}
-              <div className="text-[10px] text-slate-650 border-t border-white/[0.04] pt-4 font-mono text-center select-none">
-                Smoke Recon Engine &copy; 2026
-              </div>
-            </motion.div>
           </>
         )}
-      </AnimatePresence>
+
+        {/* VIEW: EXPLORE (Asset Detail) */}
+        {activeTab === 'explore' && (
+          <section className="mt-6 flex flex-col gap-6">
+            <button 
+              onClick={() => setActiveTab('home')}
+              className="self-start flex items-center gap-2 text-primary font-data-mono text-[12px] uppercase tracking-widest active:scale-95 transition-transform"
+            >
+              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              Return to Watchlist
+            </button>
+
+            {selectedData ? (
+              <>
+                {/* Header Card */}
+                <div className="glass-card rounded-xl p-5 flex justify-between items-center relative">
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h1 className="font-display-lg text-[28px] font-bold leading-none">{selectedData.ticker}</h1>
+                      <span className={`font-data-mono text-[10px] tracking-widest uppercase px-1.5 py-0.5 rounded border ${
+                        selectedData.average_sentiment > 0.15 
+                          ? 'text-primary bg-primary/10 border-primary/20' 
+                          : selectedData.average_sentiment < -0.15 
+                            ? 'text-error bg-error/10 border-error/20' 
+                            : 'text-on-secondary-container bg-secondary-container/20 border-secondary-container/30'
+                      }`}>
+                        {selectedData.average_sentiment > 0.15 ? 'BULLISH' : selectedData.average_sentiment < -0.15 ? 'BEARISH' : 'NEUTRAL'}
+                      </span>
+                    </div>
+                    <span className="font-data-mono text-on-surface-variant text-[12px] uppercase">{selectedData.company_name}</span>
+                  </div>
+                  
+                  {/* Circular Progress mimicking Alpha Score */}
+                  <div className="relative w-16 h-16 flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path className="text-outline-variant/30" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path className={selectedData.average_sentiment > 0.15 ? "text-primary" : selectedData.average_sentiment < -0.15 ? "text-error" : "text-white"} strokeWidth="3" strokeDasharray={`${Math.min(selectedData.breakout_alpha_score, 100)}, 100`} stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className={`font-data-mono text-[14px] font-bold ${selectedData.average_sentiment > 0.15 ? 'sentiment-bull' : selectedData.average_sentiment < -0.15 ? 'sentiment-bear' : 'text-white'}`}>
+                        {selectedData.breakout_alpha_score.toFixed(0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline Chart */}
+                <div className="glass-card p-4 rounded-xl">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-data-mono text-[12px] uppercase text-on-surface-variant tracking-widest">Mention Volume Timeline</h3>
+                    <span className="material-symbols-outlined text-[16px] text-primary">monitoring</span>
+                  </div>
+                  <div className="h-[180px] w-full">
+                    <MentionChart 
+                      timestamps={mentionsTimestamps.length > 0 ? mentionsTimestamps : (selectedData?.timestamp_vectors || [])} 
+                      ticker={selectedData?.ticker || ''} 
+                      sentiment={selectedData.average_sentiment}
+                    />
+                  </div>
+                </div>
+
+                {/* Source Distribution Progress Bars */}
+                <div className="glass-card p-4 rounded-xl">
+                  <h3 className="font-data-mono text-[12px] uppercase text-on-surface-variant tracking-widest mb-4">Source Distribution</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-[11px] font-data-mono mb-1">
+                        <span className="text-on-surface">Reddit Extracted</span>
+                        <span className="text-primary">{selectedData.source_distribution.reddit}</span>
+                      </div>
+                      <div className="w-full bg-outline-variant/30 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-primary h-full rounded-full shadow-[0_0_8px_rgba(0,242,161,0.5)]" style={{width: `${Math.min(100, (selectedData.source_distribution.reddit / selectedData.social_mentions) * 100)}%`}}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-[11px] font-data-mono mb-1">
+                        <span className="text-on-surface">X / Twitter</span>
+                        <span className="text-mesh-teal">{selectedData.source_distribution.twitter}</span>
+                      </div>
+                      <div className="w-full bg-outline-variant/30 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-mesh-teal h-full rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)]" style={{width: `${Math.min(100, (selectedData.source_distribution.twitter / selectedData.social_mentions) * 100 || 0)}%`}}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Signals Feed */}
+                <div className="flex flex-col gap-3 pb-8">
+                  <h3 className="font-data-mono text-[12px] uppercase text-on-surface-variant tracking-widest px-1">Raw Signals Feed ({mentionsData?.length || 0})</h3>
+                  {mentionsLoading ? (
+                    <div className="py-8 flex justify-center"><RefreshCw className="h-5 w-5 text-primary animate-spin" /></div>
+                  ) : !mentionsData || mentionsData.length === 0 ? (
+                    <div className="glass-card p-4 rounded-xl text-center text-on-surface-variant italic font-body-base text-[14px]">
+                      No raw chatter elements recorded in this slice.
+                    </div>
+                  ) : (
+                    mentionsData.map(mention => (
+                      <div key={mention.id} className="glass-card p-3.5 rounded-xl border-l-2" style={{borderLeftColor: mention.sentiment > 0.15 ? '#00f2a1' : mention.sentiment < -0.15 ? '#ffb4ab' : '#849589'}}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/50">
+                              <span className="font-display-lg text-[10px] font-bold text-on-surface uppercase">{mention.platform.substring(0, 1)}</span>
+                            </div>
+                            <span className="font-data-mono text-[10px] text-on-surface-variant">{new Date(mention.timestamp).toLocaleString()}</span>
+                          </div>
+                          <span className={`font-data-mono text-[9px] uppercase px-1.5 py-0.5 rounded border ${
+                            mention.sentiment > 0.15 ? 'text-primary bg-primary/5 border-primary/20' : mention.sentiment < -0.15 ? 'text-error bg-error/5 border-error/20' : 'text-on-surface-variant bg-surface-container-high border-outline-variant/30'
+                          }`}>
+                            {mention.platform}
+                          </span>
+                        </div>
+                        <p className="font-body-base text-[14px] text-on-surface leading-relaxed">
+                          "{mention.content_body}"
+                        </p>
+                        {mention.url && (
+                          <div className="mt-2 pt-2 border-t border-outline-variant/10 text-right">
+                            <a href={mention.url} target="_blank" rel="noopener noreferrer" className="font-data-mono text-[10px] text-primary hover:underline">VIEW SOURCE →</a>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex-grow flex flex-col items-center justify-center text-center p-8">
+                <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-4">explore_off</span>
+                <p className="font-data-mono text-on-surface-variant">No asset selected for exploration.</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* VIEW: STREAMS (Live Logs) */}
+        {activeTab === 'streams' && (
+          <section className="mt-6 flex flex-col h-[calc(100vh-140px)]">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="font-display-lg text-[24px] font-bold">Live System Logs</h1>
+              <span className={`flex h-2 w-2 relative`}>
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${connected ? 'bg-primary' : 'bg-error'}`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${connected ? 'bg-primary' : 'bg-error'}`}></span>
+              </span>
+            </div>
+            
+            <div className="flex-grow bg-void-obsidian/90 border border-outline-variant/30 rounded-xl font-data-mono text-metadata-tiny p-4 overflow-y-auto flex flex-col gap-1 shadow-inner relative">
+              {activities.length === 0 ? (
+                <div className="text-on-surface-variant italic">Waiting for incoming telemetry...</div>
+              ) : (
+                activities.map((act, i) => (
+                  <div key={i} className="group hover:bg-white/5 px-1 py-0.5 rounded transition-colors break-words">
+                    <span className="text-on-surface-variant opacity-60 w-20 inline-block shrink-0">[{new Date(act.timestamp).toLocaleTimeString()}]</span>
+                    {act.event_type === 'scraper' && <span className="text-mesh-teal mx-2">[SCRAPE]</span>}
+                    {act.event_type === 'mention' && <span className="text-primary mx-2">[DETECT]</span>}
+                    {act.event_type === 'error' && <span className="text-error mx-2">[ERROR]</span>}
+                    <span className="text-on-surface">{act.message}</span>
+                  </div>
+                ))
+              )}
+              <div ref={logsEndRef} />
+              
+              {/* Scanline effect overlay */}
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] opacity-20"></div>
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* Settings / Matrix Configuration Overlay */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
+          <div className="w-full max-w-md bg-surface border-l border-outline-variant/20 h-full overflow-y-auto shadow-2xl animate-in slide-in-from-right-full duration-300">
+            <div className="sticky top-0 bg-surface/90 backdrop-blur border-b border-outline-variant/20 px-6 py-4 flex justify-between items-center z-10">
+              <h2 className="font-display-lg text-[20px] font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">tune</span>
+                Matrix Configuration
+              </h2>
+              <button onClick={() => setIsSettingsOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-variant text-on-surface-variant transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-8">
+              {/* Core Limits */}
+              <div>
+                <h3 className="font-data-mono text-[12px] uppercase text-primary tracking-widest mb-4">Core Search Limits</h3>
+                
+                <div className="space-y-6 bg-surface-container-low border border-outline-variant/20 rounded-xl p-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-body-base text-[14px]">Sliding Window (Days)</label>
+                      <span className="font-data-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{days}</span>
+                    </div>
+                    <input type="range" min="1" max="30" value={days} onChange={e => setDays(Number(e.target.value))} className="w-full h-1 bg-outline-variant rounded-lg appearance-none cursor-pointer accent-primary" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-body-base text-[14px]">Min Mentions Threshold</label>
+                      <span className="font-data-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{minMentions}</span>
+                    </div>
+                    <input type="range" min="1" max="10" value={minMentions} onChange={e => setMinMentions(Number(e.target.value))} className="w-full h-1 bg-outline-variant rounded-lg appearance-none cursor-pointer accent-primary" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Source Weightage Sliders */}
+              <div>
+                <h3 className="font-data-mono text-[12px] uppercase text-primary tracking-widest mb-4">Source Weightage</h3>
+                <div className="space-y-6 bg-surface-container-low border border-outline-variant/20 rounded-xl p-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-body-base text-[14px]">Reddit Body Post</label>
+                      <span className="font-data-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{wRedditBody}%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value={wRedditBody} onChange={e => setWRedditBody(Number(e.target.value))} className="w-full h-1 bg-outline-variant rounded-lg appearance-none cursor-pointer accent-primary" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-body-base text-[14px]">Reddit Nested Comment</label>
+                      <span className="font-data-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{wRedditNested}%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value={wRedditNested} onChange={e => setWRedditNested(Number(e.target.value))} className="w-full h-1 bg-outline-variant rounded-lg appearance-none cursor-pointer accent-primary" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-body-base text-[14px]">X / Twitter</label>
+                      <span className="font-data-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{wTwitter}%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value={wTwitter} onChange={e => setWTwitter(Number(e.target.value))} className="w-full h-1 bg-outline-variant rounded-lg appearance-none cursor-pointer accent-primary" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-body-base text-[14px]">Message Boards</label>
+                      <span className="font-data-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">{wBoards}%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value={wBoards} onChange={e => setWBoards(Number(e.target.value))} className="w-full h-1 bg-outline-variant rounded-lg appearance-none cursor-pointer accent-primary" />
+                  </div>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setIsSettingsOpen(false)}
+                className="w-full py-3 bg-primary text-on-primary font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-primary-fixed active:scale-95 transition-all mt-4 shadow-[0_0_15px_rgba(0,242,161,0.3)]"
+              >
+                <CheckCircle2 className="w-5 h-5" />
+                Apply Configuration
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Navigation Shell (Mobile/Desktop Hybrid for simplicity) */}
+      <nav className="fixed bottom-0 left-0 w-full h-16 flex justify-around items-center bg-surface/80 backdrop-blur-xl border-t border-outline-variant/20 z-40">
+        <button 
+          onClick={() => setActiveTab('home')}
+          className={`flex flex-col items-center gap-1 active:scale-90 transition-transform ${activeTab === 'home' || activeTab === 'explore' ? 'text-primary' : 'text-on-surface-variant'}`}
+        >
+          <span className="material-symbols-outlined text-[24px]" style={{fontVariationSettings: activeTab === 'home' || activeTab === 'explore' ? "'FILL' 1" : "'FILL' 0"}}>dashboard</span>
+          <span className="font-metadata-tiny text-metadata-tiny">HOME</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('explore')}
+          className={`flex flex-col items-center gap-1 active:scale-90 transition-transform ${activeTab === 'explore' && selectedTicker ? 'text-primary' : 'text-on-surface-variant opacity-50'}`}
+          disabled={!selectedTicker}
+        >
+          <span className="material-symbols-outlined text-[24px]" style={{fontVariationSettings: activeTab === 'explore' ? "'FILL' 1" : "'FILL' 0"}}>explore</span>
+          <span className="font-metadata-tiny text-metadata-tiny">EXPLORE</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('streams')}
+          className={`flex flex-col items-center gap-1 active:scale-90 transition-transform ${activeTab === 'streams' ? 'text-primary' : 'text-on-surface-variant'}`}
+        >
+          <span className="material-symbols-outlined text-[24px]" style={{fontVariationSettings: activeTab === 'streams' ? "'FILL' 1" : "'FILL' 0"}}>hub</span>
+          <span className="font-metadata-tiny text-metadata-tiny">STREAMS</span>
+        </button>
+      </nav>
+
+      {/* Contextual FAB (Deploy Probe) */}
+      {activeTab === 'home' && showInstallBtn && (
+        <button 
+          onClick={handleInstallClick}
+          className="fixed bottom-20 right-6 px-4 h-12 rounded-full bg-primary-container text-on-primary-container shadow-[0_0_20px_rgba(0,242,161,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all z-30 border border-white/20 font-data-mono text-metadata-tiny font-bold"
+        >
+          <span className="material-symbols-outlined text-[20px]">download</span>
+          <span>INSTALL PWA</span>
+        </button>
+      )}
     </div>
   );
 }

@@ -30,7 +30,13 @@ def compute_breakout_tickers(db: Session, window_days: int = 7) -> Set[str]:
 
 
 def generate_watchlist_data(
-    db: Session, days: int = 7, min_mentions: int = 3
+    db: Session, 
+    days: int = 7, 
+    min_mentions: int = 3,
+    reddit_body_wt: float = 0.45,
+    reddit_nested_wt: float = 0.20,
+    twitter_wt: float = 0.25,
+    boards_wt: float = 0.10
 ) -> Dict[str, Any]:
     """
     Finds breakout tickers and constructs full payload for frontend watchlist visualization.
@@ -42,7 +48,7 @@ def generate_watchlist_data(
     for ticker in breakout_tickers:
         # Query all mentions for this ticker in the sliding window
         mentions_stmt = (
-            select(Mention, Signal.platform, Signal.weight, Signal.sentiment)
+            select(Mention, Signal.platform, Signal.engagement_depth, Signal.sentiment)
             .join(Signal, Mention.signal_id == Signal.id)
             .where(Mention.ticker == ticker)
             .where(Mention.timestamp >= cutoff_time)
@@ -59,9 +65,21 @@ def generate_watchlist_data(
         total_weighted_score = 0.0
         sentiment_sum = 0.0
 
-        for mention, platform, weight, sentiment in results:
+        for mention, platform, engagement_depth, sentiment in results:
             source_dist[platform] = source_dist.get(platform, 0) + 1
             timestamp_vectors.append(mention.timestamp.isoformat() + "Z")
+            
+            # Dynamic weight mapping
+            weight = 1.0
+            if engagement_depth == "reddit_thread_body":
+                weight = reddit_body_wt
+            elif engagement_depth == "reddit_nested_comment":
+                weight = reddit_nested_wt
+            elif engagement_depth == "twitter_tweet_text":
+                weight = twitter_wt
+            elif engagement_depth == "message_board_comment":
+                weight = boards_wt
+
             # Score contribution incorporates sentiment: (1.0 + sentiment) * weight * confidence
             total_weighted_score += float(weight) * float(mention.confidence) * (1.0 + float(sentiment))
             sentiment_sum += float(sentiment)
@@ -135,7 +153,14 @@ def get_recent_mentions_for_ticker(
     return mentions
 
 
-def generate_most_discussed_data(db: Session, days: int = 7) -> List[Dict[str, Any]]:
+def generate_most_discussed_data(
+    db: Session, 
+    days: int = 7,
+    reddit_body_wt: float = 0.45,
+    reddit_nested_wt: float = 0.20,
+    twitter_wt: float = 0.25,
+    boards_wt: float = 0.10
+) -> List[Dict[str, Any]]:
     """
     Exposes the most discussed stocks across all platforms (social + media) by mention volume.
     """
@@ -170,16 +195,24 @@ def generate_most_discussed_data(db: Session, days: int = 7) -> List[Dict[str, A
         
         # Calculate total weighted breakout score and average sentiment
         mentions_stmt = (
-            select(Mention, Signal.weight, Signal.sentiment)
+            select(Mention, Signal.engagement_depth, Signal.sentiment)
             .join(Signal, Mention.signal_id == Signal.id)
             .where(Mention.ticker == ticker)
             .where(Mention.timestamp >= cutoff_time)
         )
         results = db.execute(mentions_stmt).all()
-        total_weighted_score = sum(
-            float(weight) * float(mention.confidence) * (1.0 + float(sentiment))
-            for mention, weight, sentiment in results
-        )
+        total_weighted_score = 0.0
+        for mention, engagement_depth, sentiment in results:
+            weight = 1.0
+            if engagement_depth == "reddit_thread_body":
+                weight = reddit_body_wt
+            elif engagement_depth == "reddit_nested_comment":
+                weight = reddit_nested_wt
+            elif engagement_depth == "twitter_tweet_text":
+                weight = twitter_wt
+            elif engagement_depth == "message_board_comment":
+                weight = boards_wt
+            total_weighted_score += float(weight) * float(mention.confidence) * (1.0 + float(sentiment))
         avg_sentiment = round(sum(float(s) for _, _, s in results) / len(results), 2) if results else 0.0
         
         company_name = corporate_dict.get_company_name(ticker)

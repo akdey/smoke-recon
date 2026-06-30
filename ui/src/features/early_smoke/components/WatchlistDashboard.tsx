@@ -140,39 +140,22 @@ export default function WatchlistDashboard() {
   }, [activities]);
 
   return (
-    <div className="flex-grow flex flex-row h-full min-h-screen bg-[#04060a] text-slate-100 relative overflow-hidden font-sans">
-      {/* 🔮 ADVANCED LIQUID BACKGROUND WITH MESH BLOBS */}
+    <div className="flex-grow flex flex-row h-full min-h-screen bg-[#040508] text-slate-100 relative overflow-hidden font-sans">
+      {/* Subtle single background glow to keep UI focused */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[55%] h-[55%] rounded-full bg-gradient-to-br from-blue-600/10 via-indigo-500/10 to-violet-600/5 blur-[120px] animate-pulse" style={{ animationDuration: '12s' }} />
-        <div className="absolute bottom-[-15%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-fuchsia-600/10 via-purple-600/10 to-indigo-600/5 blur-[140px] animate-pulse" style={{ animationDuration: '18s' }} />
-        <div className="absolute top-[30%] left-[25%] w-[35%] h-[35%] rounded-full bg-gradient-to-br from-cyan-600/5 via-blue-600/5 to-teal-500/5 blur-[100px] animate-pulse" style={{ animationDuration: '15s' }} />
-        
-        {/* SVG Textured Noise Overlay */}
-        <div className="absolute inset-0 opacity-[0.012] pointer-events-none mix-blend-overlay" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-        }} />
+        <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-600/[0.03] blur-[150px]" />
       </div>
 
-      {/* SVG Refraction Filter Definitions */}
-      <svg width="0" height="0" className="absolute pointer-events-none z-[-1]">
-        <defs>
-          <filter id="liquid-glass-refraction">
-            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-      </svg>
-
       {/* ==================== DESKTOP COLUMN 1: DIAGNOSTICS & SYSTEM SIDEBAR ==================== */}
-      <aside className="hidden lg:flex flex-col w-[260px] border-r border-white/[0.05] bg-[#07090f]/75 backdrop-blur-xl relative z-20 p-5 select-none shrink-0 justify-between">
+      <aside className="hidden lg:flex flex-col w-[260px] border-r border-white/[0.04] bg-[#07090f]/35 backdrop-blur-xl relative z-20 p-5 select-none shrink-0 justify-between">
         <div className="space-y-6">
           {/* Logo Brand */}
-          <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.05]">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 via-sky-400 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.3)]">
+          <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.04]">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 via-sky-400 to-indigo-600 flex items-center justify-center">
               <Flame className="h-5 w-5 text-white fill-white" />
             </div>
             <div>
-              <span className="text-xs font-black tracking-widest bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent uppercase block">
+              <span className="text-xs font-black tracking-widest text-white uppercase block">
                 SMOKE RECON
               </span>
               <span className="text-[8px] text-slate-500 font-mono tracking-wider font-bold">SPECULATIVE CORE</span>
@@ -181,12 +164,12 @@ export default function WatchlistDashboard() {
 
           {/* Quick Controls Section */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+            <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono">
               <span>Parameters</span>
-              <SlidersHorizontal className="h-3 w-3 text-slate-500" />
+              <SlidersHorizontal className="h-3 w-3 text-slate-600" />
             </div>
 
-            <div className="space-y-3 bg-[#0a0e17]/50 border border-white/[0.03] p-3 rounded-lg">
+            <div className="space-y-3 bg-[#0a0e17]/30 border border-white/[0.02] p-3 rounded-lg">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between text-[10px] font-mono">
                   <span className="text-slate-400">Sliding Window</span>
@@ -215,12 +198,12 @@ export default function WatchlistDashboard() {
 
           {/* Core diagnostics */}
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono block">
+            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">
               Core Status
             </span>
 
             {/* DB Health */}
-            <div className="p-2.5 rounded-lg bg-[#0a0e17]/40 border border-white/[0.03] flex items-center justify-between">
+            <div className="p-2.5 rounded-lg bg-[#0a0e17]/20 border border-white/[0.02] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Database className="h-3.5 w-3.5 text-indigo-400" />
                 <div className="min-w-0">
@@ -238,7 +221,7 @@ export default function WatchlistDashboard() {
             </div>
 
             {/* Scheduler Health */}
-            <div className="p-2.5 rounded-lg bg-[#0a0e17]/40 border border-white/[0.03] flex items-center justify-between">
+            <div className="p-2.5 rounded-lg bg-[#0a0e17]/20 border border-white/[0.02] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Cpu className="h-3.5 w-3.5 text-blue-400" />
                 <div className="min-w-0">
@@ -258,9 +241,9 @@ export default function WatchlistDashboard() {
             </div>
 
             {/* Breaker States */}
-            <div className="p-2.5 rounded-lg bg-[#0a0e17]/40 border border-white/[0.03] space-y-1.5 font-mono text-[9px] text-slate-400">
+            <div className="p-2.5 rounded-lg bg-[#0a0e17]/20 border border-white/[0.02] space-y-1.5 font-mono text-[9px] text-slate-550">
               <div className="flex items-center justify-between border-b border-white/[0.02] pb-1">
-                <span className="font-semibold text-slate-200">Twitter Breaker</span>
+                <span className="font-semibold text-slate-350">Twitter Breaker</span>
                 <span className={`text-[8px] font-extrabold px-1 py-0.2 rounded border uppercase ${
                   isDegraded ? 'text-yellow-450 bg-yellow-500/10 border-yellow-500/20' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
                 }`}>
@@ -275,12 +258,12 @@ export default function WatchlistDashboard() {
           </div>
         </div>
 
-        <div className="space-y-4 pt-4 border-t border-white/[0.05]">
+        <div className="space-y-4 pt-4 border-t border-white/[0.04]">
           {/* PWA CTA */}
           {showInstallBtn && (
             <button
               onClick={handleInstallClick}
-              className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-[9px] uppercase tracking-widest transition-all active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center justify-center gap-1.5"
+              className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-[9px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Install Web App
@@ -306,10 +289,10 @@ export default function WatchlistDashboard() {
                 )}
               </button>
             </div>
-            <span className="text-[8px] text-slate-500 block leading-normal font-mono">
+            <span className="text-[8px] text-slate-550 block leading-normal font-mono">
               {notifPermission === 'granted' 
-                ? 'Real-time phone alerts enabled.'
-                : 'Allow push notification access to trigger alerts in phone.'}
+                ? 'Real-time phone alerts active.'
+                : 'Enable alerts to push updates to phone.'}
             </span>
           </div>
         </div>
@@ -318,62 +301,22 @@ export default function WatchlistDashboard() {
       {/* ==================== DESKTOP COLUMN 2 & 3 CONTAINER ==================== */}
       <div className="flex-grow flex flex-col min-w-0 h-full overflow-hidden relative z-10">
         
-        {/* HEADER PANEL FOR MOBILE AND GLOBAL CONTROLS */}
-        <header className="bg-[#07090f]/70 backdrop-blur-xl border-b border-white/[0.05] px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 select-none">
-          <div className="flex items-center gap-3 lg:hidden">
-            <div className="h-7.5 w-7.5 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center">
-              <Flame className="h-4.5 w-4.5 text-white fill-white" />
-            </div>
-            <div>
-              <span className="text-xs font-black tracking-widest bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent uppercase block">
-                SMOKE RECON
-              </span>
-              <span className="text-[8px] text-gray-500 font-mono">SPECULATIVE PIPELINE</span>
-            </div>
-          </div>
-
-          {/* Desktop telemetry indicator */}
-          <div className="hidden lg:flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-blue-400 animate-pulse" /> Live Pipeline Command Center
-            </span>
-          </div>
-
+        {/* ==================== ULTRA-CLEAN MOBILE HEADER ==================== */}
+        <header className="bg-[#040508] border-b border-white/[0.04] px-6 py-4 flex items-center justify-between sticky top-0 z-30 select-none">
           <div className="flex items-center gap-2">
-            {/* Mobile PWA Install button */}
-            {showInstallBtn && (
-              <button
-                onClick={handleInstallClick}
-                className="px-2 py-1 rounded-md bg-blue-600/30 border border-blue-500/40 text-blue-450 font-black text-[9px] uppercase tracking-widest transition-all shadow-[0_0_10px_rgba(59,130,246,0.15)] flex items-center gap-1 active:scale-95"
-              >
-                <Sparkles className="h-3 w-3" /> Install
-              </button>
-            )}
+            <Flame className="h-4.5 w-4.5 text-blue-500 fill-blue-500" />
+            <span className="text-xs font-black tracking-widest text-white uppercase">
+              SMOKE RECON
+            </span>
+            {/* Tiny unified status dot */}
+            <span className={`h-1.5 w-1.5 rounded-full ml-1 ${connected ? 'bg-emerald-500 animate-pulse shadow-[0_0_6px_#10b981]' : 'bg-amber-500'}`}></span>
+          </div>
 
-            {/* Mobile notification toggle */}
-            <button
-              onClick={requestNotificationPermission}
-              className={`lg:hidden p-1.5 rounded-lg border transition-all active:scale-95 ${
-                notifPermission === 'granted'
-                  ? 'bg-blue-600/20 hover:bg-blue-600/30 border-blue-500/50 text-blue-400'
-                  : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.06] text-slate-400'
-              }`}
-            >
-              {notifPermission === 'granted' ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-            </button>
-
-            {/* Syncing Indicator */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.05]">
-              <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]' : 'bg-amber-500'}`}></span>
-              <span className="text-[9px] text-gray-400 uppercase font-black tracking-widest font-mono">
-                {connected ? 'Pipeline Ingestion Live' : 'Syncing Streams'}
-              </span>
-            </div>
-
-            {/* Mobile Settings Toggle */}
+          <div className="flex items-center gap-3">
+            {/* Settings trigger is the ONLY option in mobile header */}
             <button 
               onClick={() => setIsSettingsOpen(true)}
-              className="lg:hidden p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-slate-300"
+              className="p-1 rounded text-slate-400 hover:text-white transition-colors"
             >
               <Settings className="h-4 w-4" />
             </button>
@@ -382,52 +325,48 @@ export default function WatchlistDashboard() {
 
         {/* ==================== MACRO TELEMETRY STATS BARS ==================== */}
         <section className="px-6 pt-5 grid grid-cols-2 md:grid-cols-4 gap-4 select-none">
-          {/* Card 1: Speculative Alerts */}
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
+          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
             <div className="min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">SPECULATIVE VOLUME</span>
               <span className="text-xl font-extrabold text-white mt-1 block leading-none font-mono">{totalSpeculativeSignals} posts</span>
             </div>
-            <div className="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-blue-500/5 border border-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
               <Volume2 className="h-4.5 w-4.5" />
             </div>
           </div>
 
-          {/* Card 2: Active Watchlist */}
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
+          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
             <div className="min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">ACTIVE IN-FOCUS</span>
               <span className="text-xl font-extrabold text-white mt-1 block leading-none font-mono">{watchlistEntries.length} tickers</span>
             </div>
-            <div className="h-8 w-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-sky-500/5 border border-sky-500/10 flex items-center justify-center text-sky-400 shrink-0">
               <Flame className="h-4.5 w-4.5" />
             </div>
           </div>
 
-          {/* Card 3: Ingestion Rate */}
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
+          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
             <div className="min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">STREAM INTENSITY</span>
               <span className="text-xl font-extrabold text-white mt-1 block leading-none font-mono">
                 {activities.filter(a => (Date.now() - new Date(a.timestamp).getTime()) < 60000).length} / min
               </span>
             </div>
-            <div className="h-8 w-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
               <Gauge className="h-4.5 w-4.5" />
             </div>
           </div>
 
-          {/* Card 4: Net Sentiment */}
-          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
+          <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.04] flex items-center justify-between">
             <div className="min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono block">NET SENTIMENT</span>
               <span className={`text-xl font-extrabold mt-1 block leading-none font-mono ${
-                overallMarketSentiment > 0.15 ? 'text-emerald-400 animate-pulse' : overallMarketSentiment < -0.15 ? 'text-rose-450' : 'text-slate-350'
+                overallMarketSentiment > 0.15 ? 'text-emerald-400 animate-pulse' : overallMarketSentiment < -0.15 ? 'text-rose-400' : 'text-slate-300'
               }`}>
                 {overallMarketSentiment > 0 ? `+${overallMarketSentiment.toFixed(2)}` : overallMarketSentiment.toFixed(2)}
               </span>
             </div>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
               <Sparkles className="h-4.5 w-4.5" />
             </div>
           </div>
@@ -435,13 +374,13 @@ export default function WatchlistDashboard() {
 
         {/* 📱 MOBILE VIEW TABS SELECTOR (Only visible below LG screens) */}
         <section className="lg:hidden px-6 pt-4 select-none">
-          <div className="grid grid-cols-2 bg-[#0a0e16] border border-white/[0.05] rounded-xl p-1 text-xs">
+          <div className="grid grid-cols-2 bg-[#0a0e16] border border-white/[0.04] rounded-xl p-1 text-xs">
             <button
               onClick={() => {
                 setActiveTab('watchlist');
               }}
               className={`py-2 rounded-lg font-bold uppercase tracking-wider transition-all ${
-                activeTab === 'watchlist' ? 'bg-blue-600/20 border border-blue-500/30 text-white' : 'text-slate-400'
+                activeTab === 'watchlist' ? 'bg-blue-600/20 border border-blue-500/20 text-white' : 'text-slate-400'
               }`}
             >
               Watchlist
@@ -449,7 +388,7 @@ export default function WatchlistDashboard() {
             <button
               onClick={() => setActiveTab('activity')}
               className={`py-2 rounded-lg font-bold uppercase tracking-wider transition-all ${
-                activeTab === 'activity' ? 'bg-blue-600/20 border border-blue-500/30 text-white' : 'text-slate-400'
+                activeTab === 'activity' ? 'bg-blue-600/20 border border-blue-500/20 text-white' : 'text-slate-400'
               }`}
             >
               Live Logs
@@ -476,7 +415,7 @@ export default function WatchlistDashboard() {
                   </button>
 
                   {/* Stock Meta details Card */}
-                  <div className="bg-[#0c101b]/50 border border-white/[0.04] rounded-xl p-4">
+                  <div className="bg-[#0c101b]/30 border border-white/[0.04] rounded-xl p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2">
@@ -485,7 +424,7 @@ export default function WatchlistDashboard() {
                             selectedData.average_sentiment > 0.15 
                               ? 'text-emerald-450 bg-emerald-500/10 border-emerald-500/20' 
                               : selectedData.average_sentiment < -0.15 
-                                ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' 
+                                ? 'text-rose-455 bg-rose-500/10 border-rose-500/20' 
                                 : 'text-slate-400 bg-slate-500/10 border-slate-500/20'
                           }`}>
                             {selectedData.average_sentiment > 0.15 ? 'Bullish' : selectedData.average_sentiment < -0.15 ? 'Bearish' : 'Neutral'}
@@ -501,7 +440,7 @@ export default function WatchlistDashboard() {
                   </div>
 
                   {/* Chart section */}
-                  <div className="bg-[#0c101b]/50 border border-white/[0.04] rounded-xl p-4 h-[240px] shrink-0">
+                  <div className="bg-[#0c101b]/30 border border-white/[0.04] rounded-xl p-4 h-[240px] shrink-0">
                     <MentionChart 
                       timestamps={mentionsTimestamps.length > 0 ? mentionsTimestamps : (selectedData?.timestamp_vectors || [])} 
                       ticker={selectedData?.ticker || ''} 
@@ -527,7 +466,7 @@ export default function WatchlistDashboard() {
                         mentionsData.map((mention, index) => (
                           <div 
                             key={mention.id || index} 
-                            className={`p-3 bg-[#080a10]/50 border rounded-xl flex flex-col gap-1.5 relative overflow-hidden ${
+                            className={`p-3 bg-[#080a10]/55 border rounded-xl flex flex-col gap-1.5 relative overflow-hidden ${
                               mention.sentiment > 0.15 
                                 ? 'border-emerald-500/10' 
                                 : mention.sentiment < -0.15 
@@ -545,7 +484,7 @@ export default function WatchlistDashboard() {
                                   mention.sentiment > 0.15 
                                     ? 'text-emerald-450 bg-emerald-500/5 border-emerald-500/10' 
                                     : mention.sentiment < -0.15 
-                                      ? 'text-rose-450 bg-rose-500/5 border-rose-500/10' 
+                                      ? 'text-rose-455 bg-rose-500/5 border-rose-500/10' 
                                       : 'text-slate-405 bg-slate-500/5 border-slate-500/10'
                                 }`}>
                                   {mention.sentiment > 0.15 ? 'Bull' : mention.sentiment < -0.15 ? 'Bear' : 'Neut'} ({mention.sentiment > 0 ? `+${mention.sentiment.toFixed(1)}` : mention.sentiment.toFixed(1)})
@@ -564,10 +503,10 @@ export default function WatchlistDashboard() {
                   </div>
 
                   {/* Score Explanation footer */}
-                  <div className="p-3 bg-blue-950/15 border border-blue-900/30 rounded-xl text-[9px] text-slate-400 leading-normal flex items-start gap-2 select-none mt-2">
+                  <div className="p-3 bg-blue-950/15 border border-blue-900/30 rounded-xl text-[9px] text-slate-450 leading-normal flex items-start gap-2 select-none mt-2">
                     <HelpCircle className="h-4.5 w-4.5 text-blue-400 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="text-slate-200 block mb-0.5">SPECULATIVE BREAKOUT SCORING</strong>
+                      <strong className="text-slate-350 block mb-0.5">SPECULATIVE BREAKOUT SCORING</strong>
                       The <strong>Alpha Score</strong> represents cumulative retail discussion density weighted by sentiment. Bullish mentions increase the score, bearish mentions decrease it, and mainstream news articles are subtracted (Set Difference) to reveal stealth trends before they go public.
                     </div>
                   </div>
@@ -605,15 +544,27 @@ export default function WatchlistDashboard() {
                     {listLoading && <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />}
                   </div>
 
-                  <div className="space-y-2.5 overflow-y-auto flex-1 pb-16">
-                    {watchlistEntries.map((item) => (
-                      <BreakoutCard 
-                        key={item.ticker}
-                        data={item}
-                        isSelected={selectedTicker === item.ticker}
-                        onSelect={handleSelectTicker}
-                      />
-                    ))}
+                  {/* Clean Financial Table Layout */}
+                  <div className="flex-grow flex flex-col bg-[#07090f]/35 border border-white/[0.03] rounded-xl overflow-hidden mt-1 pb-16">
+                    {/* Table Header Row */}
+                    <div className="px-4 py-2 bg-[#090b12] border-b border-white/[0.03] flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono select-none">
+                      <span>Ticker / Corporate</span>
+                      <div className="flex items-center gap-6">
+                        <span className="w-12 text-center">Sentiment</span>
+                        <span className="w-12 text-right">Score</span>
+                      </div>
+                    </div>
+
+                    <div className="overflow-y-auto divide-y divide-white/[0.02]">
+                      {watchlistEntries.map((item) => (
+                        <BreakoutCard 
+                          key={item.ticker}
+                          data={item}
+                          isSelected={selectedTicker === item.ticker}
+                          onSelect={handleSelectTicker}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -656,38 +607,46 @@ export default function WatchlistDashboard() {
                 </div>
               )}
 
-              {/* Stock Cards Scrollable container */}
-              <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 relative min-h-[350px]">
-                {listLoading ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs gap-3 select-none">
-                    <RefreshCw className="h-6 w-6 text-blue-400 animate-spin" />
-                    <span>Telemetry feed syncing...</span>
+              {/* Clean Desktop Watchlist Table */}
+              <div className="flex-1 flex flex-col bg-[#07090f]/35 border border-white/[0.03] rounded-xl overflow-hidden">
+                {/* Table Header */}
+                <div className="px-4 py-2.5 bg-[#090b12] border-b border-white/[0.03] flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono select-none">
+                  <span>Ticker / Corporate</span>
+                  <div className="flex items-center gap-7">
+                    <span className="w-12 text-center">Sentiment</span>
+                    <span className="w-12 text-right">Score</span>
                   </div>
-                ) : !listLoading && watchlistEntries.length === 0 ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-[#0a0e17]/10 border border-dashed border-white/[0.03] rounded-2xl select-none">
-                    <AlertCircle className="h-9 w-9 text-slate-700 mb-2" />
-                    <span className="font-bold text-slate-400 text-sm">Speculative Feed Idle</span>
-                    <span className="text-[10px] text-slate-500 max-w-xs mt-1">
-                      Check scraping parameters, window scopes, or database connection settings.
-                    </span>
-                  </div>
-                ) : (
-                  watchlistEntries.map((item) => (
-                    <BreakoutCard 
-                      key={item.ticker}
-                      data={item}
-                      isSelected={selectedTicker === item.ticker}
-                      onSelect={handleSelectTicker}
-                    />
-                  ))
-                )}
+                </div>
+
+                <div className="flex-1 overflow-y-auto divide-y divide-white/[0.015]">
+                  {listLoading ? (
+                    <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs gap-3 select-none">
+                      <RefreshCw className="h-5 w-5 text-blue-400 animate-spin" />
+                      <span>Telemetry syncing...</span>
+                    </div>
+                  ) : !listLoading && watchlistEntries.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
+                      <AlertCircle className="h-8 w-8 text-slate-700 mb-2" />
+                      <span className="font-bold text-slate-400 text-xs">Feed Empty</span>
+                    </div>
+                  ) : (
+                    watchlistEntries.map((item) => (
+                      <BreakoutCard 
+                        key={item.ticker}
+                        data={item}
+                        isSelected={selectedTicker === item.ticker}
+                        onSelect={handleSelectTicker}
+                      />
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </section>
 
           {/* DESKTOP COLUMN 2: ANALYTICS TERMINAL (LG span 7, hidden on mobile since mobile uses drill-down) */}
           <section className="hidden lg:flex lg:col-span-7 flex-col gap-4 overflow-hidden h-full">
-            <div className="flex-grow liquid-glass p-5 flex flex-col overflow-hidden h-full rounded-2xl relative shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
+            <div className="flex-grow bg-[#07090f]/20 border border-white/[0.04] p-5 flex flex-col overflow-hidden h-full rounded-2xl relative shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
               
               {selectedData ? (
                 <div className="flex-grow flex flex-col gap-5 overflow-hidden h-full">
@@ -701,7 +660,7 @@ export default function WatchlistDashboard() {
                           selectedData.average_sentiment > 0.15 
                             ? 'text-emerald-450 bg-emerald-500/10 border-emerald-500/20' 
                             : selectedData.average_sentiment < -0.15 
-                              ? 'text-rose-450 bg-rose-500/10 border-rose-500/20' 
+                              ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' 
                               : 'text-slate-400 bg-slate-500/10 border-slate-500/20'
                         }`}>
                           {selectedData.average_sentiment > 0.15 ? 'Bullish' : selectedData.average_sentiment < -0.15 ? 'Bearish' : 'Neutral'}
@@ -728,10 +687,10 @@ export default function WatchlistDashboard() {
                   {/* Targeted Comments ledger stream */}
                   <div className="flex-grow flex flex-col gap-2.5 overflow-hidden min-h-[160px]">
                     <div className="border-t border-white/[0.04] pt-3 flex items-center justify-between select-none">
-                      <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+                      <h4 className="text-[10px] font-bold text-slate-450 uppercase tracking-widest font-mono">
                         Targeted Speculative Comments Feed
                       </h4>
-                      <span className="text-[9px] px-2 py-0.5 rounded-md bg-white/[0.03] text-slate-400 border border-white/[0.05] font-mono">
+                      <span className="text-[9px] px-2 py-0.5 rounded-md bg-white/[0.03] text-slate-450 border border-white/[0.05] font-mono">
                         {mentionsData ? mentionsData.length : 0} elements recorded
                       </span>
                     </div>
@@ -749,7 +708,7 @@ export default function WatchlistDashboard() {
                         mentionsData.map((mention, index) => (
                           <div 
                             key={mention.id || index} 
-                            className={`p-3 bg-[#080a10]/50 border rounded-xl flex flex-col gap-1.5 relative overflow-hidden transition-all duration-300 hover:border-white/[0.1] ${
+                            className={`p-3 bg-[#080a10]/45 border rounded-xl flex flex-col gap-1.5 relative overflow-hidden transition-all duration-300 hover:border-white/[0.1] ${
                               mention.sentiment > 0.15 
                                 ? 'border-emerald-500/10' 
                                 : mention.sentiment < -0.15 
@@ -763,17 +722,17 @@ export default function WatchlistDashboard() {
                                 ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' 
                                 : mention.sentiment < -0.15 
                                   ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' 
-                                  : 'bg-slate-700'
+                                  : 'bg-slate-750'
                             }`} />
 
-                            <div className="flex items-center justify-between text-gray-500 text-[9px] pl-1 font-bold select-none">
+                            <div className="flex items-center justify-between text-gray-550 text-[9px] pl-1 font-bold select-none">
                               <span className="text-gray-400">{new Date(mention.timestamp).toLocaleString()}</span>
                               <div className="flex items-center gap-2">
                                 <span className={`text-[8px] font-extrabold px-1 rounded uppercase border font-mono ${
                                   mention.sentiment > 0.15 
                                     ? 'text-emerald-450 bg-emerald-500/5 border-emerald-500/10' 
                                     : mention.sentiment < -0.15 
-                                      ? 'text-rose-450 bg-rose-500/5 border-rose-500/10' 
+                                      ? 'text-rose-455 bg-rose-500/5 border-rose-500/10' 
                                       : 'text-slate-405 bg-slate-500/5 border-slate-500/10'
                                 }`}>
                                   {mention.sentiment > 0.15 ? 'Bull' : mention.sentiment < -0.15 ? 'Bear' : 'Neut'} ({mention.sentiment > 0 ? `+${mention.sentiment.toFixed(1)}` : mention.sentiment.toFixed(1)})
@@ -801,7 +760,7 @@ export default function WatchlistDashboard() {
                   </div>
 
                   {/* Explanatory telemetry footer */}
-                  <div className="p-3 bg-blue-950/15 border border-blue-900/30 rounded-xl text-[9px] text-slate-400 leading-normal flex items-start gap-2 select-none shadow-[inset_0_1px_0_0_rgba(255,255,255,0.01)]">
+                  <div className="p-3 bg-blue-950/15 border border-blue-900/30 rounded-xl text-[9px] text-slate-450 leading-normal flex items-start gap-2 select-none shadow-[inset_0_1px_0_0_rgba(255,255,255,0.01)]">
                     <HelpCircle className="h-4.5 w-4.5 text-blue-400 shrink-0 mt-0.5" />
                     <div>
                       <strong className="text-slate-200 block mb-0.5">SPECULATIVE BREAKOUT SCORING METRICS</strong>
@@ -836,15 +795,15 @@ export default function WatchlistDashboard() {
 
           {/* SYSTEM CONSOLE STREAM (collapsible/visible when logs tab selected on mobile) */}
           <section className={`lg:hidden flex flex-col gap-4 overflow-hidden h-full ${activeTab === 'activity' ? 'flex' : 'hidden'}`}>
-            <div className="flex-grow bg-[#07090f]/75 border border-white/[0.05] rounded-xl p-4 overflow-y-auto space-y-2.5 font-mono text-[10px]">
+            <div className="flex-grow bg-[#07090f]/75 border border-white/[0.04] rounded-xl p-4 overflow-y-auto space-y-2.5 font-mono text-[10px]">
               {activities.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-600 italic">
+                <div className="h-full flex items-center justify-center text-slate-650 italic">
                   Telemetry logs streaming pending...
                 </div>
               ) : (
                 activities.map((event, index) => (
                   <div key={index} className="flex flex-col gap-1 border-b border-white/[0.02] pb-2">
-                    <div className="flex items-center justify-between text-slate-500 text-[9px]">
+                    <div className="flex items-center justify-between text-slate-550 text-[9px]">
                       <span>[{new Date(event.timestamp).toLocaleTimeString()}]</span>
                       <span className="text-orange-400 font-bold uppercase">{event.event_type}</span>
                     </div>
@@ -928,6 +887,42 @@ export default function WatchlistDashboard() {
                   </div>
                 </div>
 
+                {/* PWA CTA inside Drawer */}
+                {showInstallBtn && (
+                  <div className="space-y-2.5">
+                    <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
+                      Application Installation
+                    </h4>
+                    <button
+                      onClick={handleInstallClick}
+                      className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[9px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Install to Home Screen
+                    </button>
+                  </div>
+                )}
+
+                {/* Push Notification Toggle inside Drawer */}
+                <div className="space-y-2.5">
+                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
+                    Notification Permissions
+                  </h4>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-[#0c101a] border border-white/[0.03]">
+                    <span className="text-xs font-semibold text-slate-200">Phone Push Alerts</span>
+                    <button
+                      onClick={requestNotificationPermission}
+                      className={`px-3 py-1 rounded-md text-[10px] font-bold font-mono transition-all active:scale-95 uppercase ${
+                        notifPermission === 'granted'
+                          ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-900/30'
+                          : 'bg-white/[0.04] text-slate-400 border border-white/[0.05]'
+                      }`}
+                    >
+                      {notifPermission === 'granted' ? 'Enabled' : 'Request'}
+                    </button>
+                  </div>
+                </div>
+
                 {/* System Diagnostics Metrics */}
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
@@ -940,7 +935,7 @@ export default function WatchlistDashboard() {
                       <Database className="h-4 w-4 text-indigo-400" />
                       <div>
                         <span className="text-xs font-semibold text-slate-200 block">SQLite Database</span>
-                        <span className="text-[9px] text-slate-400 block font-mono mt-0.5">
+                        <span className="text-[9px] text-slate-450 block font-mono mt-0.5">
                           Size: {status?.database?.size_bytes ? `${(status.database.size_bytes / 1024).toFixed(1)} KB` : '0 KB'}
                         </span>
                       </div>
@@ -958,7 +953,7 @@ export default function WatchlistDashboard() {
                       <Cpu className="h-4 w-4 text-blue-400" />
                       <div>
                         <span className="text-xs font-semibold text-slate-200 block">Task Scheduler</span>
-                        <span className="text-[9px] text-slate-400 block font-mono mt-0.5">
+                        <span className="text-[9px] text-slate-450 block font-mono mt-0.5">
                           Active jobs: {status?.scheduler?.active_jobs?.length || 0}
                         </span>
                       </div>
@@ -1001,7 +996,7 @@ export default function WatchlistDashboard() {
               </div>
 
               {/* Footer info */}
-              <div className="text-[10px] text-slate-600 border-t border-white/[0.04] pt-4 font-mono text-center select-none">
+              <div className="text-[10px] text-slate-650 border-t border-white/[0.04] pt-4 font-mono text-center select-none">
                 Smoke Recon Engine &copy; 2026
               </div>
             </motion.div>

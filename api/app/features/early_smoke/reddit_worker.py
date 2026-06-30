@@ -1,8 +1,6 @@
 import os
 import logging
 import feedparser
-import urllib.request
-import urllib.error
 import hashlib
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
@@ -15,19 +13,35 @@ logger = logging.getLogger("reddit_worker")
 SUBREDDITS = ["IndianStreetBets", "stocks", "wallstreetbets"]
 
 
+# Rotating desktop User-Agent pool to avoid bot detection
+_USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.5; rv:126.0) Gecko/20100101 Firefox/126.0",
+]
+
+
 def fetch_url(url: str) -> str:
     """
-    Fetches URL content using urllib.request with modern desktop browser headers.
+    Fetches URL content using httpx with rotating desktop browser headers.
+    Note: Reddit's /new/ endpoint requires JavaScript and will only return
+    a static shell page. Use RSS feeds instead.
     """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5"
-    }
+    import httpx
+    import random
+
     try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=15) as response:
-            return response.read().decode("utf-8", errors="ignore")
+        headers = {
+            "User-Agent": random.choice(_USER_AGENTS),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+        }
+        with httpx.Client(timeout=15.0, follow_redirects=True) as client:
+            response = client.get(url, headers=headers)
+            response.raise_for_status()
+            return response.text
     except Exception as e:
         logger.warning(f"Scraper: failed to fetch {url}: {e}")
         return ""
@@ -193,11 +207,9 @@ def run_reddit_ingestion(db: Session) -> None:
         posts = fetch_reddit_comments_praw(client_id, client_secret)
 
     if not posts:
-        logger.info("PRAW not available or failed. Trying HTML Web Scraper...")
-        posts = fetch_reddit_comments_scraper()
-
-    if not posts:
-        logger.info("HTML Web Scraper returned empty. Utilizing public RSS scraper fallback.")
+        # Reddit's /new/ endpoint is fully JavaScript-rendered — the HTML scraper
+        # only receives a static shell page. Skip directly to the reliable RSS feed.
+        logger.info("PRAW unavailable. Fetching live comments via public Reddit RSS feeds...")
         posts = fetch_reddit_comments_rss()
 
     # Log if empty, but do not seed mock items

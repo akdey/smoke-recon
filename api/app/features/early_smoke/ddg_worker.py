@@ -2,7 +2,7 @@ import logging
 import hashlib
 from datetime import datetime
 from typing import List, Dict, Any
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 
 logger = logging.getLogger("ddg_worker")
 

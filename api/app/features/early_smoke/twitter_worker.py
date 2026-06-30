@@ -19,7 +19,7 @@ def scrape_twitter() -> List[Dict[str, Any]]:
 
     tweets = []
     try:
-        from duckduckgo_search import DDGS
+        from ddgs import DDGS
         logger.info("Executing zero-auth Twitter search scraper via DDG...")
         with DDGS() as ddgs:
             results = list(

@@ -42,7 +42,7 @@ def scrape_chittorgarh_forum() -> List[Dict[str, Any]]:
     if not comments:
         try:
             logger.info("Chittorgarh direct crawl empty. Initializing DDG fallback search...")
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             with DDGS() as ddgs:
                 results = list(
                     ddgs.text("site:chittorgarh.com/ipo_forum/", max_results=10)
@@ -98,7 +98,7 @@ def scrape_et_times_forum() -> List[Dict[str, Any]]:
     if not comments:
         try:
             logger.info("ET Times direct crawl empty. Initializing DDG fallback search...")
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             with DDGS() as ddgs:
                 results = list(
                     ddgs.text("site:economictimes.indiatimes.com/et-board/", max_results=10)

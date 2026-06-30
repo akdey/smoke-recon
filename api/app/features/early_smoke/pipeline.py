@@ -53,6 +53,7 @@ def ingest_social_post(db: Session, post_data: Dict[str, Any]) -> bool:
     content_body_raw = post_data.get("content_body", "")
     content_body = clean_html(content_body_raw)
     engagement_depth = post_data.get("engagement_depth", "nested_comment")
+    url = post_data.get("url", None)
 
     if not platform or not content_body:
         return False
@@ -84,6 +85,7 @@ def ingest_social_post(db: Session, post_data: Dict[str, Any]) -> bool:
         content_body=content_body,
         engagement_depth=engagement_depth,
         weight=weight,
+        url=url,
     )
 
     try:

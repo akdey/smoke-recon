@@ -52,3 +52,22 @@ export interface HealthResponse {
   scheduler: SchedulerStatus;
   circuit_breakers: CircuitBreakersStatus;
 }
+
+export interface MentionDetail {
+  id: number;
+  platform: string;
+  content_body: string;
+  timestamp: string;
+  url: string | null;
+  match_type: string;
+  confidence: number;
+}
+
+export interface MostDiscussedEntry {
+  ticker: string;
+  company_name: string;
+  total_mentions: number;
+  social_mentions: number;
+  media_mentions: number;
+  breakout_alpha_score: number;
+}

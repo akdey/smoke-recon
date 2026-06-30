@@ -2,6 +2,7 @@ import os
 import asyncio
 import json
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
+from typing import List
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -48,6 +49,39 @@ def get_watchlist(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to generate watchlist: {e}"
+        )
+
+
+@router.get("/mentions", response_model=List[schemas.MentionDetailResponse])
+def get_mentions(
+    ticker: str,
+    days: int = Query(default=7, ge=1, le=30),
+    db: Session = Depends(get_db),
+):
+    """
+    Returns recent historical social media comment mentions for a specific ticker symbol.
+    """
+    try:
+        return breakout.get_recent_mentions_for_ticker(db, ticker=ticker, days=days)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch mentions for {ticker}: {e}"
+        )
+
+
+@router.get("/most-discussed", response_model=List[schemas.MostDiscussedEntry])
+def get_most_discussed(
+    days: int = Query(default=7, ge=1, le=30),
+    db: Session = Depends(get_db),
+):
+    """
+    Exposes the most discussed stocks across all platforms (social + media) by mention volume.
+    """
+    try:
+        return breakout.generate_most_discussed_data(db, days=days)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate most discussed list: {e}"
         )
 
 

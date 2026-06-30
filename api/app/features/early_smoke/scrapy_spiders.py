@@ -31,6 +31,7 @@ def scrape_chittorgarh_forum() -> List[Dict[str, Any]]:
                         "thread_id": f"chit_thread_{i}",
                         "content_body": post.get_text().strip(),
                         "engagement_depth": "message_board_comment",
+                        "url": url,
                     }
                 )
     except Exception as e:
@@ -59,6 +60,7 @@ def scrape_et_times_forum() -> List[Dict[str, Any]]:
                         "thread_id": f"et_thread_{i}",
                         "content_body": post.get_text().strip(),
                         "engagement_depth": "message_board_comment",
+                        "url": url,
                     }
                 )
     except Exception as e:

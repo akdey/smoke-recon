@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { useSystemStatus } from '../hooks/useSystemStatus';
 import { useActivityStream } from '../hooks/useActivityStream';
+import { useMostDiscussed } from '../hooks/useMostDiscussed';
+import { useMentions } from '../hooks/useMentions';
 import BreakoutCard from './BreakoutCard';
 import MentionChart from './MentionChart';
 import ActivityConsole from './ActivityConsole';
@@ -18,23 +20,45 @@ export default function WatchlistDashboard() {
   const [activeTab, setActiveTab] = useState<'watchlist' | 'analytics' | 'activity'>('watchlist');
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState<boolean>(false);
+  const [activeView, setActiveView] = useState<'breakouts' | 'mostDiscussed'>('breakouts');
 
   // Load API hooks
   const { data, loading, error } = useWatchlist(days, minMentions);
+  const { data: mostDiscussedData, loading: mostDiscussedLoading, error: mostDiscussedError } = useMostDiscussed(days);
+  const { data: mentionsData, loading: mentionsLoading } = useMentions(selectedTicker, days);
   const status = useSystemStatus();
   const { activities, connected } = useActivityStream();
 
+  const mappedMostDiscussed = mostDiscussedData?.map(item => ({
+    ticker: item.ticker,
+    company_name: item.company_name,
+    breakout_alpha_score: item.breakout_alpha_score,
+    social_mentions: item.social_mentions,
+    media_mentions: item.media_mentions,
+    source_distribution: {
+      reddit: item.social_mentions,
+      twitter: 0,
+      chittorgarh: 0,
+      et_times: 0
+    },
+    timestamp_vectors: []
+  })) || [];
+
+  const watchlistEntries = activeView === 'breakouts' ? (data?.watchlist || []) : mappedMostDiscussed;
+  const listLoading = activeView === 'breakouts' ? loading : mostDiscussedLoading;
+  const listError = activeView === 'breakouts' ? error : mostDiscussedError;
+
   // Reset selected ticker if it's no longer in the list
   useEffect(() => {
-    if (data?.watchlist && data.watchlist.length > 0) {
-      const exists = data.watchlist.some(w => w.ticker === selectedTicker);
+    if (watchlistEntries && watchlistEntries.length > 0) {
+      const exists = watchlistEntries.some(w => w.ticker === selectedTicker);
       if (!exists) {
-        setSelectedTicker(data.watchlist[0].ticker);
+        setSelectedTicker(watchlistEntries[0].ticker);
       }
     } else {
       setSelectedTicker(null);
     }
-  }, [data, selectedTicker]);
+  }, [watchlistEntries, selectedTicker]);
 
   // Handle ticker selection
   const handleSelectTicker = (ticker: string) => {
@@ -43,7 +67,8 @@ export default function WatchlistDashboard() {
     setActiveTab('analytics');
   };
 
-  const selectedData = data?.watchlist.find(w => w.ticker === selectedTicker) || null;
+  const selectedData = watchlistEntries.find(w => w.ticker === selectedTicker) || null;
+  const mentionsTimestamps = mentionsData?.map(m => m.timestamp).sort() || [];
 
   // Filter activities to show matching posts for the selected ticker
   const matchingActivities = activities.filter(
@@ -54,9 +79,26 @@ export default function WatchlistDashboard() {
   const isDegraded = status?.status === 'degraded';
 
   return (
-    <div className="flex-grow flex flex-col h-full bg-[#030712] text-slate-100 pb-20 lg:pb-8">
+    <div className="flex-grow flex flex-col h-full bg-[#030712] text-slate-100 pb-20 lg:pb-8 relative overflow-hidden">
+      {/* Liquid Glass Background Blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-15%] w-[45%] h-[45%] rounded-full bg-gradient-to-br from-blue-600/10 to-indigo-600/10 blur-[130px] animate-pulse" style={{ animationDuration: '9s' }} />
+        <div className="absolute bottom-[-10%] right-[-15%] w-[55%] h-[55%] rounded-full bg-gradient-to-br from-purple-600/10 to-pink-600/10 blur-[160px] animate-pulse" style={{ animationDuration: '13s' }} />
+        <div className="absolute top-[30%] right-[15%] w-[35%] h-[35%] rounded-full bg-gradient-to-br from-cyan-600/8 to-blue-600/8 blur-[120px] animate-pulse" style={{ animationDuration: '11s' }} />
+      </div>
+
+      {/* SVG Refraction Filter Definitions */}
+      <svg width="0" height="0" className="absolute pointer-events-none z-[-1]">
+        <defs>
+          <filter id="liquid-glass-refraction">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+
       {/* 🚀 GLOW HEADER */}
-      <header className="bg-[#090d16]/80 backdrop-blur-md border-b border-gray-950 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+      <header className="bg-white/[0.02] backdrop-blur-md border-b border-white/[0.06] px-4 py-3 flex items-center justify-between sticky top-0 z-30 relative">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Flame className="h-4.5 w-4.5 text-white fill-white" />
@@ -72,7 +114,7 @@ export default function WatchlistDashboard() {
         {/* Live / Status Indicators */}
         <div className="flex items-center gap-3">
           {/* Connection state */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#121624] border border-gray-900">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.04] border border-white/[0.06]">
             <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
             <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider font-mono">
               {connected ? 'Live' : 'Syncing'}
@@ -82,7 +124,7 @@ export default function WatchlistDashboard() {
           {/* Settings button */}
           <button 
             onClick={() => setIsSettingsOpen(true)}
-            className="p-1.5 rounded-lg bg-[#121624] hover:bg-[#1b2236] border border-gray-900 hover:border-gray-800 text-slate-300 transition-all active:scale-95"
+            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.1] text-slate-300 transition-all active:scale-95"
           >
             <Settings className="h-4 w-4" />
           </button>
@@ -90,7 +132,7 @@ export default function WatchlistDashboard() {
       </header>
 
       {/* 📱 MOBILE TABS CONTAINER */}
-      <main className="flex-grow overflow-x-hidden overflow-y-auto px-4 py-4 flex flex-col lg:hidden relative">
+      <main className="flex-grow overflow-x-hidden overflow-y-auto px-4 py-4 flex flex-col lg:hidden relative z-10">
         <AnimatePresence mode="wait">
           {activeTab === 'watchlist' && (
             <motion.div
@@ -101,32 +143,56 @@ export default function WatchlistDashboard() {
               transition={{ duration: 0.15 }}
               className="flex-grow flex flex-col gap-3 h-full"
             >
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Breakouts ({data?.watchlist.length || 0})
-                </h2>
-                {loading && <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />}
+              {/* View Toggle */}
+              <div className="grid grid-cols-2 p-1 bg-[#0b0f19] border border-gray-900 rounded-lg text-xs mb-3 select-none">
+                <button
+                  onClick={() => setActiveView('breakouts')}
+                  className={`py-1.5 rounded-md font-bold uppercase tracking-wider transition-all ${
+                    activeView === 'breakouts'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Breakouts
+                </button>
+                <button
+                  onClick={() => setActiveView('mostDiscussed')}
+                  className={`py-1.5 rounded-md font-bold uppercase tracking-wider transition-all ${
+                    activeView === 'mostDiscussed'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Most Discussed
+                </button>
               </div>
 
-              {error && (
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  {activeView === 'breakouts' ? 'Breakouts' : 'Most Discussed'} ({watchlistEntries.length})
+                </h2>
+                {listLoading && <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />}
+              </div>
+
+              {listError && (
                 <div className="p-4 bg-red-950/25 border border-red-900/50 rounded-xl flex items-center gap-3 text-red-300 text-xs">
                   <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
-                  <span>Failed to sync watchlist: {error}</span>
+                  <span>Failed to sync: {listError}</span>
                 </div>
               )}
 
-              {!loading && !error && data?.watchlist.length === 0 && (
+              {!listLoading && !listError && watchlistEntries.length === 0 && (
                 <div className="flex-grow min-h-[350px] flex flex-col items-center justify-center text-center p-8 bg-[#0a0e17]/30 border border-dashed border-gray-800 rounded-2xl">
                   <HelpCircle className="h-10 w-10 text-slate-700 mb-3" />
-                  <span className="font-semibold text-slate-300 text-sm">No Speculative Breakouts</span>
+                  <span className="font-semibold text-slate-300 text-sm">No speculative data</span>
                   <span className="text-[11px] text-slate-500 max-w-xs mt-1">
-                    Social chatter frequency matches media baselines or doesn't meet target mentions of {minMentions}.
+                    No active assets matching parameters.
                   </span>
                 </div>
               )}
 
               <div className="space-y-3">
-                {!loading && data && data.watchlist.map((item) => (
+                {!listLoading && watchlistEntries.map((item) => (
                   <BreakoutCard 
                     key={item.ticker}
                     data={item}
@@ -170,29 +236,45 @@ export default function WatchlistDashboard() {
                   {/* Chart */}
                   <div className="bg-[#0c101b]/50 border border-gray-900 rounded-xl p-4 h-[280px]">
                     <MentionChart 
-                      timestamps={selectedData.timestamp_vectors} 
-                      ticker={selectedData.ticker} 
+                      timestamps={mentionsTimestamps.length > 0 ? mentionsTimestamps : (selectedData?.timestamp_vectors || [])} 
+                      ticker={selectedData?.ticker || ''} 
                     />
                   </div>
 
                   {/* Matching Feeds */}
                   <div className="flex-1 flex flex-col gap-2">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                      Recent Live Chatter Mentions ({matchingActivities.length})
+                      Recent Live Chatter Mentions ({mentionsData ? mentionsData.length : 0})
                     </h3>
                     <div className="flex-grow max-h-[220px] overflow-y-auto space-y-2 font-mono text-[10px]">
-                      {matchingActivities.length === 0 ? (
+                      {mentionsLoading ? (
+                        <div className="flex items-center justify-center p-4">
+                          <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />
+                        </div>
+                      ) : !mentionsData || mentionsData.length === 0 ? (
                         <div className="p-4 text-center text-gray-600 bg-[#0c101b]/20 border border-gray-900 rounded-lg italic">
-                          No recent matching streams in memory console.
+                          No recent matching comments in database.
                         </div>
                       ) : (
-                        matchingActivities.map((act, index) => (
-                          <div key={index} className="p-3 bg-[#0c101b]/40 border border-gray-900 rounded-lg">
-                            <div className="flex items-center justify-between text-gray-500 mb-1">
-                              <span>{new Date(act.timestamp).toLocaleTimeString()}</span>
-                              <span className="text-orange-400 font-semibold">{act.source}</span>
+                        mentionsData.map((mention, index) => (
+                          <div key={mention.id || index} className="p-3 bg-[#0c101b]/40 border border-gray-900 rounded-lg flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between text-gray-500">
+                              <span>{new Date(mention.timestamp).toLocaleTimeString()}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-orange-400 font-semibold">{mention.platform}</span>
+                                {mention.url && (
+                                  <a 
+                                    href={mention.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-450 hover:text-blue-300 font-bold hover:underline"
+                                  >
+                                    [Source]
+                                  </a>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-slate-300">"{act.details?.body || act.message}"</p>
+                            <p className="text-slate-300">"{mention.content_body}"</p>
                           </div>
                         ))
                       )}
@@ -224,12 +306,12 @@ export default function WatchlistDashboard() {
       </main>
 
       {/* 💻 DESKTOP DUAL-GRID WORKSPACE */}
-      <main className="hidden lg:grid grid-cols-12 gap-6 flex-1 px-8 py-6 max-w-[1600px] w-full mx-auto overflow-hidden">
+      <main className="hidden lg:grid grid-cols-12 gap-6 flex-1 px-8 py-6 max-w-[1600px] w-full mx-auto overflow-hidden z-10 relative">
         
         {/* LEFT COLUMN: Controls & Cards (Span 4) */}
         <section className="col-span-4 flex flex-col gap-4 overflow-hidden h-full">
           {/* Params header */}
-          <div className="bg-[#0b0f19]/60 backdrop-blur-md border border-[#1f2937]/50 rounded-xl p-4">
+          <div className="liquid-glass rounded-xl p-4">
             <button 
               onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
               className="w-full flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest active:scale-[0.99] transition-all"
@@ -280,24 +362,48 @@ export default function WatchlistDashboard() {
             </AnimatePresence>
           </div>
 
-          {/* List */}
-          <div className="flex-1 flex flex-col gap-2 overflow-hidden">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Watchlist ({data?.watchlist.length || 0})
-              </h3>
-              {loading && <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />}
+          {/* List Header & Toggle */}
+          <div className="flex-1 flex flex-col gap-3 overflow-hidden">
+            {/* View Tab Selector */}
+            <div className="grid grid-cols-2 p-1 bg-[#0b0f19] border border-gray-900 rounded-lg text-[10px] select-none">
+              <button
+                onClick={() => setActiveView('breakouts')}
+                className={`py-1.5 rounded-md font-bold uppercase tracking-wider transition-all ${
+                  activeView === 'breakouts'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Breakouts
+              </button>
+              <button
+                onClick={() => setActiveView('mostDiscussed')}
+                className={`py-1.5 rounded-md font-bold uppercase tracking-wider transition-all ${
+                  activeView === 'mostDiscussed'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Most Discussed
+              </button>
             </div>
 
-            {error && (
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                {activeView === 'breakouts' ? 'Speculative Breakouts' : 'Most Discussed'} ({watchlistEntries.length})
+              </h3>
+              {listLoading && <RefreshCw className="h-3.5 w-3.5 text-blue-400 animate-spin" />}
+            </div>
+
+            {listError && (
               <div className="p-3 bg-red-950/20 border border-red-900/40 rounded-xl flex items-center gap-2 text-red-300 text-xs">
                 <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
-                <span>Sync Error: {error}</span>
+                <span>Sync Error: {listError}</span>
               </div>
             )}
 
             <div className="flex-grow overflow-y-auto pr-1 space-y-3 pb-4">
-              {!loading && data && data.watchlist.map((item) => (
+              {!listLoading && watchlistEntries.map((item) => (
                 <BreakoutCard 
                   key={item.ticker}
                   data={item}
@@ -305,9 +411,9 @@ export default function WatchlistDashboard() {
                   onSelect={handleSelectTicker}
                 />
               ))}
-              {!loading && !error && data?.watchlist.length === 0 && (
+              {!listLoading && !listError && watchlistEntries.length === 0 && (
                 <div className="p-8 text-center bg-[#0a0e17]/20 border border-dashed border-gray-800 rounded-xl text-gray-500 text-xs">
-                  No stealth breakouts detected with threshold parameters.
+                  No assets detected under current parameters.
                 </div>
               )}
             </div>
@@ -322,7 +428,7 @@ export default function WatchlistDashboard() {
             </h3>
           </div>
 
-          <div className="flex-1 bg-[#0b0f19]/60 backdrop-blur-md border border-[#1f2937]/50 rounded-xl p-5 flex flex-col overflow-hidden h-full">
+          <div className="flex-1 liquid-glass p-5 flex flex-col overflow-hidden h-full">
             {selectedData ? (
               <div className="flex-grow flex flex-col gap-5 overflow-hidden h-full">
                 <div className="flex items-center justify-between">
@@ -338,8 +444,8 @@ export default function WatchlistDashboard() {
 
                 <div className="flex-1 min-h-[220px] max-h-[300px]">
                   <MentionChart 
-                    timestamps={selectedData.timestamp_vectors} 
-                    ticker={selectedData.ticker} 
+                    timestamps={mentionsTimestamps.length > 0 ? mentionsTimestamps : (selectedData?.timestamp_vectors || [])} 
+                    ticker={selectedData?.ticker || ''} 
                   />
                 </div>
 
@@ -350,23 +456,39 @@ export default function WatchlistDashboard() {
                       Targeted Mentions Feed
                     </h4>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-950/40 text-blue-400 border border-blue-800/40 font-mono">
-                      {matchingActivities.length} logs in memory
+                      {mentionsData ? mentionsData.length : 0} logs in database
                     </span>
                   </div>
                   
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-[10px] pb-4">
-                    {matchingActivities.length === 0 ? (
+                    {mentionsLoading ? (
+                      <div className="flex items-center justify-center p-8">
+                        <RefreshCw className="h-4 w-4 text-blue-400 animate-spin" />
+                      </div>
+                    ) : !mentionsData || mentionsData.length === 0 ? (
                       <div className="p-4 text-center text-gray-600 bg-[#0c101b]/20 border border-gray-900 rounded-lg italic">
-                        No logs capture matches for ${selectedTicker} yet.
+                        No historical mentions found for ${selectedTicker} in the sliding window.
                       </div>
                     ) : (
-                      matchingActivities.map((act, index) => (
-                        <div key={index} className="p-2.5 bg-[#0c101b]/45 border border-gray-900/60 rounded-lg">
-                          <div className="flex items-center justify-between text-gray-500 mb-1">
-                            <span>{new Date(act.timestamp).toLocaleTimeString()}</span>
-                            <span className="text-orange-400 font-semibold">{act.source}</span>
+                      mentionsData.map((mention, index) => (
+                        <div key={mention.id || index} className="p-2.5 bg-[#0c101b]/45 border border-gray-900/60 rounded-lg flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between text-gray-500 text-[9px]">
+                            <span className="text-[10px] text-gray-400">{new Date(mention.timestamp).toLocaleString()}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-orange-400 font-semibold">{mention.platform}</span>
+                              {mention.url && (
+                                <a 
+                                  href={mention.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-405 hover:text-blue-300 font-bold hover:underline transition-all"
+                                >
+                                  [Source]
+                                </a>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-slate-300 leading-normal">"{act.details?.body || act.message}"</p>
+                          <p className="text-slate-300 leading-normal">"{mention.content_body}"</p>
                         </div>
                       ))
                     )}

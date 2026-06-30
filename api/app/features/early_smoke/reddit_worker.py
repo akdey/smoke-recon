@@ -27,10 +27,51 @@ def fetch_reddit_comments_rss() -> List[Dict[str, Any]]:
                         "thread_id": entry.get("id", ""),
                         "content_body": entry.get("summary", entry.get("title", "")),
                         "engagement_depth": "reddit_nested_comment",
+                        "url": entry.get("link", ""),
                     }
                 )
         except Exception as e:
             logger.warning(f"Failed to fetch public RSS comments for r/{sub}: {e}")
+    return posts
+
+
+def fetch_reddit_comments_praw(client_id: str, client_secret: str) -> List[Dict[str, Any]]:
+    """
+    Fetches new submissions and nested comments using the official Reddit PRAW client.
+    """
+    import praw
+    posts = []
+    try:
+        user_agent = os.getenv("REDDIT_USER_AGENT", "python:SmokeRecon:v1.2")
+        reddit = praw.Reddit(
+            client_id=client_id,
+            client_secret=client_secret,
+            user_agent=user_agent
+        )
+        for sub_name in SUBREDDITS:
+            logger.info(f"PRAW: Fetching r/{sub_name} new submissions...")
+            subreddit = reddit.subreddit(sub_name)
+            for submission in subreddit.new(limit=15):
+                # Thread submission body
+                posts.append({
+                    "platform": "reddit",
+                    "thread_id": submission.id,
+                    "content_body": f"{submission.title}. {submission.selftext}",
+                    "engagement_depth": "reddit_thread_body",
+                    "url": f"https://www.reddit.com{submission.permalink}"
+                })
+                # Nested top comments
+                submission.comments.replace_more(limit=0)
+                for comment in submission.comments.list()[:10]:
+                    posts.append({
+                        "platform": "reddit",
+                        "thread_id": comment.id,
+                        "content_body": comment.body,
+                        "engagement_depth": "reddit_nested_comment",
+                        "url": f"https://www.reddit.com{comment.permalink}"
+                    })
+    except Exception as e:
+        logger.error(f"Failed fetching comments via PRAW: {e}")
     return posts
 
 
@@ -45,10 +86,8 @@ def run_reddit_ingestion(db: Session) -> None:
 
     posts = []
     if client_id and client_secret:
-        # PRAW implementation would go here.
-        # Fallback to RSS is deployed in this sandbox for 100% reliability.
-        logger.info("Reddit PRAW keys found. Initializing PRAW feed...")
-        posts = fetch_reddit_comments_rss()
+        logger.info("Reddit PRAW credentials found. Initializing PRAW feed...")
+        posts = fetch_reddit_comments_praw(client_id, client_secret)
     else:
         logger.info(
             "No Reddit PRAW credentials found. Utilizing public RSS scraper fallback."

@@ -24,10 +24,10 @@ export default function BreakoutCard({ data, onSelect, isSelected }: BreakoutCar
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={`p-4 rounded-xl border transition-colors duration-300 cursor-pointer flex flex-col justify-between select-none ${
+      className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer flex flex-col justify-between select-none ${
         isSelected 
-          ? 'bg-gradient-to-br from-blue-950/20 to-slate-900/30 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
-          : 'bg-[#0f172a]/30 backdrop-blur-md border-white/[0.04] hover:border-gray-700/60 hover:bg-[#121b2e]/30'
+          ? 'glass-card-selected'
+          : 'liquid-glass hover:bg-white/[0.07] hover:border-white/[0.14]'
       }`}
     >
       <div>

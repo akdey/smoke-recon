@@ -20,6 +20,7 @@ class Signal(Base):
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     engagement_depth = Column(String, nullable=False)
     weight = Column(Float, default=1.0, nullable=False)
+    url = Column(String, nullable=True)
 
     mentions = relationship(
         "Mention",

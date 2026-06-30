@@ -51,35 +51,7 @@ def clean_company_name(name: str) -> str:
             break
     return name_lower
 
-def deep_clean_company_name(name: str) -> str:
-    """
-    Applies aggressive cleaning of sector/industry suffixes for alias generation.
-    """
-    cleaned = clean_company_name(name)
-    for suffix in SECTOR_SUFFIXES:
-        if cleaned.endswith(suffix):
-            cleaned = cleaned[:-len(suffix)].strip()
-            break
-    return cleaned
 
-def generate_acronym(name: str) -> str | None:
-    """
-    Generates a lowercase acronym from a cleaned company name by taking initials 
-    of significant words, ignoring common prepositions and fillers.
-    """
-    # Strip common non-alphanumeric chars first to split cleanly
-    cleaned = re.sub(r"[^\w\s]", " ", name.lower())
-    words = cleaned.split()
-    
-    # Filler words to ignore when generating acronyms
-    fillers = {"of", "and", "the", "for", "in", "on", "at", "by", "with", "a", "an"}
-    filtered_words = [w for w in words if w not in fillers]
-    
-    if len(filtered_words) >= 3:
-        acronym = "".join(w[0] for w in filtered_words if w)
-        if len(acronym) >= 3:
-            return acronym
-    return None
 
 class CorporateDictionary:
     """
@@ -149,20 +121,13 @@ class CorporateDictionary:
                 # Add to ticker-to-name mapping
                 self._ticker_to_name[symbol] = company_name
 
-                # Clean company name to create colloquial match targets
+                # Clean company name to create colloquial match targets (only removing "Ltd", "Corp" etc)
                 colloquial_name = clean_company_name(company_name)
-                deep_colloquial = deep_clean_company_name(company_name)
                 
                 if colloquial_name:
                     self._mapping[colloquial_name] = symbol
-                if deep_colloquial and deep_colloquial not in GENERIC_WORDS:
-                    self._mapping[deep_colloquial] = symbol
                 
-                # Acronym mapping
-                acronym = generate_acronym(colloquial_name)
-                if acronym and acronym not in ACRONYM_BLACKLIST:
-                    self._mapping[acronym] = symbol
-                
+                # Always map the exact symbol (lowercased for uniform dictionary lookup)
                 self._mapping[symbol.lower()] = symbol
                 count += 1
                 

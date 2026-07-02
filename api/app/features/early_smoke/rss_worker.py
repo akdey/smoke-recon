@@ -34,3 +34,38 @@ def fetch_google_news_baseline() -> List[Dict[str, Any]]:
         logger.warning(f"Google News RSS feed parsing failed: {e}")
 
     return articles
+
+
+def fetch_et_times_baseline() -> List[Dict[str, Any]]:
+    """
+    Fetches news from Economic Times Markets RSS feed.
+    """
+    feed_url = "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms"
+    articles = []
+    try:
+        feed = feedparser.parse(feed_url)
+        for entry in feed.entries[:25]:
+            title = entry.get("title", "")
+            summary = entry.get("summary", "")
+            link = entry.get("link", "")
+            entry_id = entry.get("id", link)
+
+            # Combine title and summary for richer ticker matching in headline
+            headline = f"{title}. {summary}".strip()
+            if not headline:
+                continue
+
+            article_id = hashlib.md5(entry_id.encode("utf-8")).hexdigest()[:16]
+            articles.append(
+                {
+                    "article_id": article_id,
+                    "source": "et_times",
+                    "headline": headline,
+                    "url": link,
+                    "timestamp": datetime.utcnow(),
+                }
+            )
+    except Exception as e:
+        logger.warning(f"ET Markets RSS feed parsing failed: {e}")
+
+    return articles

@@ -1,7 +1,6 @@
 import logging
 import hashlib
 import random
-import feedparser
 import httpx
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any
@@ -88,71 +87,26 @@ def scrape_chittorgarh_forum() -> List[Dict[str, Any]]:
 
     return comments
 
-
-def scrape_et_times_forum() -> List[Dict[str, Any]]:
-    """
-    Ingests ET Markets stock news via official RSS feed.
-    RSS is reliable, structured, and avoids all bot-detection issues.
-    Feed: economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms
-    """
-    feed_url = "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms"
-    comments = []
-
-    try:
-        feed = feedparser.parse(feed_url)
-        if not feed.entries:
-            logger.warning("ET Markets RSS returned no entries.")
-            return []
-
-        for entry in feed.entries[:25]:
-            title = entry.get("title", "")
-            summary = entry.get("summary", "")
-            link = entry.get("link", "")
-            entry_id = entry.get("id", link)
-
-            body = f"{title}. {summary}".strip()
-            if not body:
-                continue
-
-            comments.append(
-                {
-                    "platform": "et_times",
-                    "thread_id": hashlib.md5(entry_id.encode("utf-8")).hexdigest()[:16],
-                    "content_body": body,
-                    "engagement_depth": "message_board_comment",
-                    "url": link,
-                }
-            )
-
-        logger.info(f"ET Markets RSS: ingested {len(comments)} articles.")
-    except Exception as e:
-        logger.warning(f"ET Markets RSS fetch failed: {e}")
-
-    return comments
-
-
 def run_message_boards_ingestion(db: Session) -> None:
     """
-    Scrapes and ingests content from Chittorgarh (IPO data) and ET Markets (RSS news).
+    Scrapes and ingests content from Chittorgarh (IPO data).
     """
     logger.info("Starting Web Message Boards scraping...")
     broadcaster.broadcast(
         event_type="system",
-        message="Message board crawlers started. Fetching Chittorgarh IPOs and ET Markets RSS...",
+        message="Message board crawlers started. Fetching Chittorgarh IPOs...",
         source="message_boards",
     )
 
     posts = []
     chit_posts = scrape_chittorgarh_forum()
-    et_posts = scrape_et_times_forum()
     posts.extend(chit_posts)
-    posts.extend(et_posts)
 
     broadcaster.broadcast(
         event_type="system",
-        message=f"Crawl fetched: {len(chit_posts)} Chittorgarh rows, {len(et_posts)} ET Markets articles.",
+        message=f"Crawl fetched: {len(chit_posts)} Chittorgarh rows.",
         source="message_boards",
-        details={"chittorgarh": len(chit_posts), "et_markets": len(et_posts)},
+        details={"chittorgarh": len(chit_posts)},
     )
 
     if not posts:

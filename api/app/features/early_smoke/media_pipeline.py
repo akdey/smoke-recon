@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.features.early_smoke.models import MediaBaseline, MediaMention
 from app.features.early_smoke.matcher import ticker_matcher
-from app.features.early_smoke.rss_worker import fetch_google_news_baseline
+from app.features.early_smoke.rss_worker import fetch_google_news_baseline, fetch_et_times_baseline
 from app.features.early_smoke.ddg_worker import fetch_ddg_news_baseline
 from app.features.early_smoke.broadcaster import broadcaster
 
@@ -13,13 +13,14 @@ logger = logging.getLogger("media_pipeline")
 
 def run_media_baseline_ingestion(db: Session) -> None:
     """
-    Crawls mainstream Google News RSS and DuckDuckGo search baselines.
+    Crawls mainstream Google News RSS, DuckDuckGo search baselines, and ET Markets RSS.
     Parses tickers, dedupes, and stores mentions in the database.
     """
     logger.info("Starting mainstream media baseline crawl...")
     articles = []
     articles.extend(fetch_google_news_baseline())
     articles.extend(fetch_ddg_news_baseline())
+    articles.extend(fetch_et_times_baseline())
 
     # Log if empty, but do not seed mock items
     if not articles:
